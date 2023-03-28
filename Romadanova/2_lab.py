@@ -16,10 +16,9 @@ def f(x,K):
     buf = buf // 1
     print(buf)
 
-    if buf**2 <= 10**15:
-        Size=10
 
-    buf = 0 + (buf**2)*(10**(-1*K))*Size
+
+    buf = 0 + (buf**2)*(10**(-1*K))
     print(buf)
     result = buf
     return result
@@ -30,17 +29,12 @@ def a_f(x,K):
         buffer = buffer/10
     if (x*10000)**2 >= 10**16:
         buffer = buffer*10
-    print("1",buffer)
     buffer = buffer*(10**(K/4))
     buffer-=(buffer // 1)
     buffer *= 10 ** (K / 2)
     buffer = buffer // 1
-    print("2",buffer)
-    if buffer < 10**7:
-        buffer= 10**8 - buffer
     buffer = 0 + (buffer)/((10**(K/2))*Size)
     result = buffer
-    print("3",buffer)
     return result
 
 n =1000
@@ -52,7 +46,10 @@ buf_num =0
 
 for i in range(1,n):
     x_array.append(i)
-    y_array.append(a_f(y_array[i-1],k))
+    y_array.append(a_f(y_array[i - 1], k))
+    if a_f(y_array[i-1],k) == 0:
+        break
+
 
 fig, ax = pylab.subplots()
 ax.remove()
@@ -67,6 +64,10 @@ plt.show()
 
 fig, ax = pylab.subplots()
 ax.remove()
+
+x_array = [0]
+for i in range(1,n):
+    x_array.append(i)
 
 n = 1000
 m = [1291]

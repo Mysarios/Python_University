@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sympy import *
 import sympy as sym
+from functools import reduce
+from operator import mul
 
 Sigma = Symbol('Sigma')
 A = Symbol('a')
@@ -30,18 +32,29 @@ def Get_Function_Normal_Raspredelenia(x,a,sigma):
     Function = Buf_0 * Buf_1
 
     return Function
+def Get_Function_Normal_Kohi(x,tetta):
+    Buf_0 = 1.0 / (math.pi * tetta)
+    Buf_1 = 1.0 / ( 1 + ( ( (x-0.2)/tetta   )**2) )
+    Function = Buf_0 * Buf_1
+
+    return Function
 def Create_Symb_Function_Normal(sigma,a):
     Function = ( sym.exp(( -((t - a) ** 2) / (2 * (sigma ** 2)) ) ))/ (sigma * (2 * PI) ** (1 / 2.0))
     return Function.subs([(A,a),(Sigma,sigma)])
+def Create_Symb_Function_Kohi(tetta):
+    Buf_0 = 1.0 / (math.pi * tetta)
+    Buf_1 = 1.0 / (1 + (((t - 0, 2) / tetta) ** 2))
+    Function = Buf_0 * Buf_1
+    return Function
 def Get_integral(Function,x,a):
-    if x > a:
-        Result = integrate(Function, (t, a, x))
-    if x <= a:
-        Result = integrate(Function, (t, x, a))
+    Result = integrate(Function, (t,-np.inf,x))
 
     Result.subs(t, x)
-    Result = 1/2 + Result
     return Result.evalf()
+
+def Get_Kohi(tetta,x):
+    function = 1/2.0 + (1/math.pi) * atan( (x - 0.2)/tetta )
+    return function
 
 Base_Array = [0.1, -1.53, -0.94, 0.21, 0.77, 1.10, 0.23, -0.15, 0.79, -0.71,
               1.17, 0.01, 0.45, 1.55, 1.48, -0.09, 0.01, 1.00, 1.25, 1.35,
@@ -119,8 +132,56 @@ ax.hist(Base_Array_Sorted,Middle)
 plt.show()
 
 #Коши:
+print(" \n\n\n KOHI \n\n")
+teta = abs(reduce(mul, Base_Array)) ** (1 / 100)
+print("tetta : ", teta)
+solidity_Teoretic_periodicity = []
+for i in range (0, len(Middle)):
+    solidity_Teoretic_periodicity.append(Get_Function_Normal_Kohi(Middle[i],teta))
+#print()
+print("Per: ", solidity_relative_periodicity)
+print("Teor per: ", solidity_Teoretic_periodicity)
+#print()
+
+results_normal = []
+results_normal_last = []
+
+check = []
+New_number_to_Integral = Min_num
+for i in range(1, len(Middle) + 1 ):
+    check.append(New_number_to_Integral)
+    results_normal.append(Get_Kohi(teta , New_number_to_Integral + Interval_step))
+    results_normal_last.append(Get_Kohi(teta, New_number_to_Integral))
+    New_number_to_Integral +=Interval_step
+
+p_i = []
+for i in range(0, len(results_normal)):
+    p_i.append( abs(results_normal[i] - results_normal_last[i]) )
+
+print("Veroiatnosti : ", p_i)
+Wait_nums = []
+Check_pi = 0
+for i in range(0, len(p_i)):
+    Wait_nums.append(p_i[i] * n)
+    Check_pi += p_i[i]
+print( Check_pi)
+print("Wait nums : ", Wait_nums)
+#New
+Buf_num = []
+for i in range(0, len(p_i)):
+    Buf_num.append( ((periodicity[i] - abs(Wait_nums[i]) )**2) / Wait_nums[i] )
+
+print("per : ", periodicity)
+print("Pirson nums for iterations : ", Buf_num)
+
+Pirson_num = 0
+for i in range(0, len(p_i)):
+    Pirson_num += Buf_num[i]
+print("Pirson_num :", Pirson_num)
+print(" Teor num :", 11.07)
 
 #Нормальный:
+print( " \n\n\n NORMAL \n\n")
 a = Get_M(Base_Array)
 sigma =Get_D(Base_Array)
 print("a = ",a," Sigma =",sigma)
@@ -128,10 +189,10 @@ print("a = ",a," Sigma =",sigma)
 solidity_Teoretic_periodicity = []
 for i in range (0, len(Middle)):
     solidity_Teoretic_periodicity.append(Get_Function_Normal_Raspredelenia(Middle[i],a,sigma))
-print()
+#print()
 print("Per: ", solidity_relative_periodicity)
 print("Teor per: ", solidity_Teoretic_periodicity)
-print()
+#print()
 
 results_normal = []
 results_normal_last = []
@@ -139,9 +200,10 @@ Normal_function = Create_Symb_Function_Normal(sigma,a)
 
 check = []
 New_number_to_Integral = Min_num
+print(Normal_function)
 for i in range(1, len(Middle)):
     check.append(New_number_to_Integral)
-    results_normal.append(Get_integral(Normal_function, New_number_to_Integral + Interval_step,a))
+    results_normal.append( Get_integral(Normal_function, New_number_to_Integral + Interval_step,a) )
     results_normal_last.append(Get_integral(Normal_function, New_number_to_Integral,a))
     New_number_to_Integral +=Interval_step
 
@@ -150,7 +212,7 @@ results_normal_last.append(Get_integral(Normal_function, New_number_to_Integral,
 check.append(New_number_to_Integral)
 
 print()
-print(check)
+#print(check)
 print(results_normal)
 print(results_normal_last)
 print()
@@ -173,10 +235,10 @@ for i in range(0, len(p_i)):
     Buf_num.append( ((periodicity[i] - abs(Wait_nums[i]) )**2) / Wait_nums[i] )
 
 print("per : ", periodicity)
-print("New nums : ", Buf_num)
+print("Pirson nums for iterations : ", Buf_num)
 
 Pirson_num = 0
 for i in range(0, len(p_i)):
     Pirson_num += Buf_num[i]
-print("Pirson_num :",Pirson_num)
+print("Pirson_num :", Pirson_num)
 print(" Teor num :", 11.07)
