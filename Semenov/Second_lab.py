@@ -6,9 +6,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 #Выбор типа функции
-Choose =1
+Choose =0
 #DATA
-N=3
+N=5
 #graph points
 Size = 30
 Max_q_T = 2
@@ -133,7 +133,7 @@ def Lin_Function_Loop(w_coefs,y_1,q_1,fig, axs):
         q_for_graph.append(Q_now)
         W_Result.append(dw)
 
-    axs[0].plot(W_graph, q_for_graph)
+    axs.plot(W_graph, q_for_graph)
     plt.show()
 
     return W_Result
@@ -189,7 +189,7 @@ def Ne_Lin_Function_Loop(w_coefs,y_1,q_1,yn_1,fig, axs):
     for i in range(0,Size+2):
         W_graph.append(Get_W(L/2,W_Result[i]))
 
-    axs[0].plot(W_graph,q_for_graph)
+    axs.plot(W_graph,q_for_graph)
     return W_Result
 def Ne_Lin_Function(w_coefs,y_1,q_1,yn_1,Q__T):
     Ee = Symbol('E')
@@ -298,15 +298,13 @@ dw = []
 dw_2 = []
 
 if(Choose == 0):
-    print("Q_t =",Q__T)
     dw = Lin_Function(w_coefs,y_1,q_1,Q__T)
     dw_2 = Ne_Lin_Function(w_coefs, y_1, q_1, y_nelin_1,Q__T)
 
     print(Get_W(L / 2, dw))
     print(Get_W(L / 2, dw_2))
-    print("End")
 else:
-    fig, axs = plt.subplots(2)
+    fig, axs = plt.subplots(1)
     dw= Ne_Lin_Function_Loop(w_coefs,y_1,q_1,y_nelin_1,fig, axs)
     dw = Lin_Function_Loop(w_coefs, y_1, q_1,fig, axs)
 
@@ -325,7 +323,6 @@ if Choose == 0 :
     for i in range (1,int(X_count_1)+2):
         W_result=0
         W_result = Get_W(x_now_1,dw)
-        print(W_result)
         W_graph.append(W_result)
         X_for_graph_1.append(x_now_1)
         x_now_1 +=X_step_1
