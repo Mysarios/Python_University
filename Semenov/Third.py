@@ -3,6 +3,7 @@ from sympy import *
 import numpy as np
 import math as m
 import matplotlib as mpl
+from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
 #Выбор типа функции
@@ -10,11 +11,13 @@ Choose = 2
 Type = 0
 #DATA
 N=4
+z_val = 1
 E=2.1*(10**5)
 q_T=1.34/100
 L=12
 h=0.12
 #graph points
+size_Graph = 20
 Size = 30
 Max_q_T = 2
 A=L
@@ -30,6 +33,125 @@ a = 0
 b = L
 
 #Создать w функцию
+def Draw_3d_W(dw):
+    x_array = []
+    y_array = []
+    z_array = [0]*Size
+    for i in range (0,Size):
+        z_array[i] = [0]*Size
+    step = A/(Size-1)
+    for i in range(0,Size):
+        x_array.append(i*step)
+        y_array.append(i*step)
+
+    for i in range(0,Size):
+        for j in range(0,Size):
+            z_array[i][j] = (Get_W_Plane(x_array[i],y_array[j],dw))
+
+    z_array=np.array(z_array)
+    x_array = np.array(x_array)
+    y_array = np.array(y_array)
+    X, Y = np.meshgrid(x_array, y_array)
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
+    ax.set_title('Surface plot geeks for geeks')
+    plt.show()
+def Sigmas(dw,Coefs):
+    w =Get_W_To_Sigmas(Coefs)
+    x = Symbol('x')
+    y = Symbol('y')
+    All_w = 0
+    for i in range(0,N):
+        All_w += w[i]
+
+    w_for_Sigma_x = All_w.diff(x)
+    w_for_Sigma_x = w_for_Sigma_x.diff(x)
+
+    w_for_Sigma_y = All_w.diff(y)
+    w_for_Sigma_y = w_for_Sigma_y.diff(y)
+
+    w_for_tay = All_w.diff(x)
+    w_for_tay = w_for_tay.diff(y)
+
+    x_array = []
+    y_array = []
+    Sigma_X = [0] * Size
+    Sigma_Y = [0] * Size
+    Tay = [0] * Size
+
+    for i in range(0, Size):
+        Sigma_X[i] = [0] * Size
+        Sigma_Y[i] = [0] * Size
+        Tay[i] = [0] * Size
+
+    step = A / (Size - 1)
+    for i in range(0, Size):
+        x_array.append(i * step)
+        y_array.append(i * step)
+
+
+    Plot_Sigmas_X(Sigma_X,x_array,y_array,w_for_Sigma_x,dw)
+    Plot_Sigmas_Y(Sigma_X, x_array, y_array, w_for_Sigma_y, dw)
+    Plot_Tay(Sigma_X, x_array, y_array, w_for_tay, dw)
+def Plot_Sigmas_X(Sigmas_array,x_array,y_array,dw_Sigmas,dw):
+    y = Symbol('y')
+    x = Symbol('x')
+
+    for W_coefs in range(0, N):
+        dw_Sigmas = dw_Sigmas.subs('w' + str(W_coefs + 1), (dw[W_coefs]))
+
+    for i in range(0,Size):
+        for j in range(0,Size):
+            Sigmas_array[i][j] = -z_val*dw_Sigmas.subs([(x,x_array[i]),(y,y_array[j])])
+
+    Sigmas_array = np.array(Sigmas_array)
+    x_array = np.array(x_array)
+    y_array = np.array(y_array)
+    X, Y = np.meshgrid(x_array, y_array)
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, Sigmas_array, cmap='viridis', edgecolor='green')
+    ax.set_title('Sigma X')
+    plt.show()
+def Plot_Sigmas_Y(Sigmas_array, x_array, y_array, dw_Sigmas, dw):
+    y = Symbol('y')
+    x = Symbol('x')
+    for W_coefs in range(0, N):
+        dw_Sigmas = dw_Sigmas.subs('w' + str(W_coefs + 1), (dw[W_coefs]))
+
+    for i in range(0, Size):
+        for j in range(0, Size):
+            Sigmas_array[i][j] = -z_val * dw_Sigmas.subs([(x, x_array[i]), (y, y_array[j])])
+
+    Sigmas_array = np.array(Sigmas_array)
+    x_array = np.array(x_array)
+    y_array = np.array(y_array)
+    X, Y = np.meshgrid(x_array, y_array)
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, Sigmas_array, cmap='viridis', edgecolor='green')
+    ax.set_title('Sigma Y')
+    plt.show()
+def Plot_Tay(Sigmas_array, x_array, y_array, dw_Sigmas, dw):
+    y = Symbol('y')
+    x = Symbol('x')
+    for W_coefs in range(0, N):
+        dw_Sigmas = dw_Sigmas.subs('w' + str(W_coefs + 1), (dw[W_coefs]))
+
+    for i in range(0, Size):
+        for j in range(0, Size):
+            Sigmas_array[i][j] = -2*z_val * dw_Sigmas.subs([(x, x_array[i]), (y, y_array[j])])
+
+    Sigmas_array = np.array(Sigmas_array)
+    x_array = np.array(x_array)
+    y_array = np.array(y_array)
+    X, Y = np.meshgrid(x_array, y_array)
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, Sigmas_array, cmap='viridis', edgecolor='green')
+    ax.set_title('Tay')
+    plt.show()
 def Create_w():
     w_coefs = []
     # Add w1..n
@@ -50,6 +172,28 @@ def Get_W(X,dw):
         W_result+= dw[i-1] * sin((m.pi * i * X)/L)
 
     return W_result
+def Get_W_To_Sigmas(Coef):
+    w = []
+    y=Symbol('y')
+    x=Symbol('x')
+    New_n = N ** (1 / 2.0)
+    New_n = int(New_n)
+    # Hard
+    if Type == 0:
+        for j in range(1, New_n + 1):
+            for i in range(1, New_n + 1):
+                w.append(
+                    Coef[(j - 1) * New_n + i - 1] * (1 - cos(2 * i * y * m.pi / L)) * (1 - cos(2 * j * x * m.pi / L)))
+    if Type == 1:
+        for j in range(1, New_n + 1):
+            for i in range(1, New_n + 1):
+                w.append(Coef[(j - 1) * New_n + i - 1] * sin(i * y * m.pi / L) * sin(j * x * m.pi / L))
+    if Type == 2:
+        for j in range(1, New_n + 1):
+            for i in range(1, New_n + 1):
+                w.append(Coef[i - 1] * (1 - cos(2 * i * y * m.pi / Ll)) * (1 - cos(2 * j * x * m.pi / Ll)))
+
+    return w
 def Get_W_Plane(X_val,Y_val,dw):
     W_result = 0.
     New_n = N ** (1 / 2.0)
@@ -594,6 +738,10 @@ if (Choose == 2):
     Result = Get_W_Plane(A/2,B/2, dw)
     print(Result)
     print(dw)
+    print(w_coefs)
+    Draw_3d_W(dw)
+    Sigmas(dw,w_coefs)
+
 
 
 

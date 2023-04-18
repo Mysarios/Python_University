@@ -6,9 +6,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 #Выбор типа функции
-Choose =0
+Choose =1
 #DATA
-N=5
+N=3
 #graph points
 Size = 30
 Max_q_T = 2
@@ -112,12 +112,15 @@ def Lin_Function_Loop(w_coefs,y_1,q_1,fig, axs):
     W_Result = [0] * (Size + 2)
 
     W_graph = []
-    Q_now = 0.00001
+    #Q_now = 0.00001
+    Q_now = 0
     Q_step = q_T/(Size/Max_q_T)
     q_for_graph = []
     # Цикл по разным q
+
     for j in range(1, Size + 2):
         dw = []
+        q_for_graph.append(Q_now)
         print("q_now_Linear = ", Q_now)
         for i in range(1, N + 1):
             buf = y_1.diff(w_coefs[i - 1]) - q_1.diff(w_coefs[i - 1])
@@ -130,7 +133,7 @@ def Lin_Function_Loop(w_coefs,y_1,q_1,fig, axs):
         W_graph.append(Get_W(L / 2,dw))
         print(Get_W(L / 2,dw))
         Q_now += Q_step
-        q_for_graph.append(Q_now)
+
         W_Result.append(dw)
 
     axs.plot(W_graph, q_for_graph)
@@ -166,27 +169,28 @@ def Ne_Lin_Function_Loop(w_coefs,y_1,q_1,yn_1,fig, axs):
     Ll = Symbol('l')
     W_Result = [0]*(Size+2)
     W_Result[0] = [0] * N
-    Q_now = 0.00001
+    #Q_now = 0.00001
+    Q_now = 0
     Q_step = q_T/(Size/Max_q_T)
     q_for_graph =[]
     #Цикл по разным q
 
-    q_for_graph.append(Q_now)
-    for j in range(1,Size+2):
-        W_Result[j]=W_Result[j-1]
-        print("q_now_Not_Linear = ", Q_now)
 
+    for j in range(1,Size+2):
+        #W_Result[j]=W_Result[j-1]
+        print("q_now_Not_Linear = ", Q_now)
+        q_for_graph.append(Q_now)
 
         Buf_Function = y_1 + yn_1 - q_1
         Main_Function = Buf_Function.subs([(Ee, E), (Hh, h), (Qq, Q_now), (Ll, L), (pi, m.pi)])
-        W_Result[j] = Nuton_Iter(Main_Function,eps, W_Result[j], w_coefs)
+        W_Result[j] = Nuton_Iter(Main_Function,eps, W_Result[j-1], w_coefs)
 
         Q_now += Q_step
-        q_for_graph.append(Q_now)
+
         print(Get_W(L / 2,W_Result[j]))
 
     W_graph = []
-    for i in range(0,Size+2):
+    for i in range(1,Size+2):
         W_graph.append(Get_W(L/2,W_Result[i]))
 
     axs.plot(W_graph,q_for_graph)
