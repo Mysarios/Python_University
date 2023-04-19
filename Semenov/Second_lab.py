@@ -6,7 +6,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 #Выбор типа функции
-Choose =1
+Choose =0
 #DATA
 N=3
 #graph points
@@ -307,10 +307,64 @@ if(Choose == 0):
 
     print(Get_W(L / 2, dw))
     print(Get_W(L / 2, dw_2))
+
+    # Данные для графика
+    #fig, axs = plt.subplots(2)
+    x_now_1 = 0
+    X_count_1 = L / 0.5
+    X_step_1 = L / X_count_1
+    X_for_graph_1 = []
+    W_graph = []
+
+    for i in range(1, int(X_count_1) + 2):
+        W_result = 0
+        W_result = Get_W(x_now_1, dw_2)
+        W_graph.append(W_result)
+        X_for_graph_1.append(x_now_1)
+        x_now_1 += X_step_1
+    # Вывод графика
+
+    plt.plot(X_for_graph_1, W_graph)
+    plt.ylabel("W(x), м")
+    plt.xlabel("x, м")
+    plt.title("График W(x) вдоль всей балки")
+    plt.show()
+
+    # Просчет сигм
+    y_for_sigma = y_for_sigma.subs([(Ll, L), (pi, m.pi)])
+    Sigma = []
+    z = h / 2
+    x_now = 0
+    X_count = L / 0.5
+    X_step = L / X_count
+    X_for_graph = []
+    for i in range(1, int(X_count) + 2):
+        X_for_graph.append(x_now)
+        E_x = y_for_sigma.subs(x, x_now)
+        x_now += X_step
+        print(E_x)
+        for j in range(1, N + 1):
+            E_x = E_x.subs('w' + str(j), dw[j - 1])
+
+        buf_sigma = -1* z * E * E_x
+        Sigma.append(buf_sigma)
+
+    # Вывод сигм
+    plt.plot(X_for_graph, Sigma)
+    plt.ylabel("Сигма(x), МПа")
+    plt.xlabel("x, м")
+    plt.title("График сигм вдоль всей балки")
+    plt.show()
 else:
     fig, axs = plt.subplots(1)
+    plt.xlabel("W(L/2), м")
+    plt.ylabel("q, МПа")
+    plt.legend = True
+    plt.title("График нагрузки-прогиб для Линейного и Нелинейного случая")
     dw= Ne_Lin_Function_Loop(w_coefs,y_1,q_1,y_nelin_1,fig, axs)
     dw = Lin_Function_Loop(w_coefs, y_1, q_1,fig, axs)
+
+
 
 
 
@@ -323,7 +377,7 @@ X_for_graph_1 =[]
 W_graph =[]
 
 # W для всех иксов
-if Choose == 0 :
+if Choose == 3 :
     for i in range (1,int(X_count_1)+2):
         W_result=0
         W_result = Get_W(x_now_1,dw)
