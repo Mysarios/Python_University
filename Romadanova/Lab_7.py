@@ -4,16 +4,11 @@ import random
 import matplotlib.pyplot as plt
 from statistics import mean, variance
 import math
-from scipy import integrate
-
 import pylab
 
 
 def f(x):
     return 2 / (math.pi * (1 - x**2)**(1/2))
-
-
-
 
 Start = 0;
 End = 1;
@@ -23,16 +18,16 @@ ax.remove()
 
 # print("Задание 1")
 lbd = 2
-m = 100
+m = 1000
 
 pylab.subplot(2, 2, 1)
 pylab.title("Плотность")
-x = np.arange(Start, End, 0.01)
+x = np.arange(Start, 5, 0.01)
 plt.plot(x, lbd*math.e**(-lbd*x))
 
 pylab.subplot(2, 2, 2)
 pylab.title("Функция распределения")
-x = np.arange(Start, End, 0.01)
+x = np.arange(Start, 5, 0.01)
 plt.plot(x, 1 - math.e**(-lbd*x))
 
 data = []
