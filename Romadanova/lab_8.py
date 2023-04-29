@@ -56,7 +56,7 @@ for i in range(m):
     y2 = C*x2**3
 
     eps =x1
-    nj = (C*x2)
+    nj = x2
     gx = C*eps**3
     if nj> Max:
         Max = nj

@@ -9,13 +9,11 @@ s = 100
 
 for i in range(n):
     data_bern = bernoulli.rvs(size=s, p=p)
-    print(data_bern)
     for j in range(s):
         if data_bern[j] == 1:
             data_ans.append(j+1)
             break
 
-print(data_ans)
 
 for el in data_ans:
     element_count = len([e for e in data_ans if e == el])

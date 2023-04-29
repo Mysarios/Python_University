@@ -5,6 +5,14 @@ import matplotlib.pyplot as plt
 from statistics import mean, variance
 import math
 import pylab
+import sympy
+from statistics import mean, variance
+from sympy import *
+from sympy import solveset, symbols, Interval, Min, Max
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+import pylab
 
 
 def f(x):
@@ -55,6 +63,9 @@ pylab.title("Плотность")
 x = np.arange(Start, End, 0.01)
 plt.plot(x, 2 / (math.pi * (1 - x**2)**(1/2)))
 
+
+
+
 pylab.subplot(2,2,2)
 pylab.title("Функция распределения")
 x = np.arange(0, 1, 0.01)
@@ -63,11 +74,16 @@ plt.plot(x, (2/math.pi) * numpy.arcsin(x))
 data = []
 pylab.subplot(2, 2, 3)
 for i in range(m):
-    data.append(random.uniform(0, 1)**(2/3))
+    x = random.random()
+    data.append(sin(x*math.pi/2))
+
     pylab.scatter(i + 1, data[i], color='r', marker='+', s=50)
 
 pylab.subplot(2, 2, 4)
-pylab.hist(data)
+data = np.array(data)
+data_graph = data.astype(np.float64)
+
+pylab.hist(data_graph)
 
 pylab.show()
 
