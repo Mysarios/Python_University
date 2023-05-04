@@ -41,9 +41,7 @@ b = B_lin
 
 def Get_W_Plane(x_val,y_val,function,Values):
     W_result = 0.
-
     # Hard
-
     for j in range(1, n_1 + 1):
         for i in range(1, n_2 + 1):
             W_result+= Values[(j-1)*n_1 + i-1] * sin((i) * x_val * m.pi / A_lin) * sin((j) * y_val * m.pi / B_lin)
@@ -91,7 +89,6 @@ def Get_u_coefs():
     return w_coefs
 def Get_w_coefs():
     w_coefs = []
-
     for i in range(1, N + 1):
         w_coefs.append(Symbol('w' + str(i)))
     return w_coefs
@@ -244,6 +241,7 @@ Es_main[5] = -2*q*W_Function
 print("Start get)")
 W_values = Get_Answer(Es_main,w_vals,u_vals,v_vals)
 
+
 W_val = []
 U_val = []
 V_val = []
@@ -259,5 +257,9 @@ print(V_val)
 Draw_3d_W('W',W_val)
 Draw_3d_W('U',U_val)
 Draw_3d_W('V',V_val)
+
+
+
+
 print(W_values)
 
