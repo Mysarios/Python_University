@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 #Change var : 1 for  T300/976 (izo)      ;2 for Org_Glass                  ;3 for Still
 Change = 1
 #DATA
-N_x = 4
-N_y = 4
+
+N_x = 2
+N_y = 2
 N = N_x*N_y
-Q_Start = 0.02
+Q_Start = 0.0134
 Q_my = Q_Start
 
 #Symbols
@@ -77,20 +78,28 @@ Density_Still = 7800
 Start_integral = 0
 
 #graph points
-Size = 30
+Size = 50
 
 def Get_W_Plane(x_val,y_val,function,Values):
-    W_result = 0.
+    W_result = 0
+
     # Hard
+
     for j in range(1, N_x + 1):
         for i in range(1, N_y + 1):
-            W_result+= Values[(j-1)*N_x + i-1] * sin(i * x_val * m.pi / A_lenght_x) * sin(j * y_val * m.pi / B_lenght_y)
+            W_result += Values[(j-1)*N_x + i-1] * sin(i * x_val * m.pi / A_lenght_x) * sin(j * y_val * m.pi / B_lenght_y)
 
+    print(W_result)
     return W_result
 def Draw_3d_W(Function,Values_Result):
     x_array = []
     y_array = []
     z_array = [0]*Size
+
+    print(Values_Result)
+
+    print()
+    print(Function)
 
     for i in range (0,Size):
         z_array[i] = [0]*Size
@@ -143,7 +152,7 @@ def Draw_3d_Sigmas(Function, Values_Result,Type_Sigmas,U_function,V_function,W_F
         if Type_Sigmas == 1:
             Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_T300,nu_T300,z_val))
         if Type_Sigmas == 2:
-            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E1_T300,nu_T300,nu_T300,z_val))
+            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_T300,nu_T300,z_val))
         if Type_Sigmas == 3:
             Tay_xy_Function = (Get_Sigma_tay_Orto(U_function,V_function,W_Function,G_12_T300,z_val))
     if Change == 2:
@@ -390,7 +399,7 @@ def Get_Answer(Es,w_coef,u_coef,v_coef):
         Buf_Symbols.append(v_coef[i - 1])
 
     for i in range(len(Buf)):
-        Buf[i] = nsimplify(Buf[i], tolerance=1e-7).evalf(16)
+        Buf[i] = nsimplify(Buf[i], tolerance=1e-15).evalf(15)
 
     for solution in linsolve(Buf, Buf_Symbols):
         Result = solution
