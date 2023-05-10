@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 Choose = 2
 Type = 2
 #DATA
-N=9
+N=4
 E=2.1*(10**5)
 q_T=1.34/100
 L=15
