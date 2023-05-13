@@ -31,7 +31,7 @@ for i in range(Count_Functions):
         if Krit == "max":
             if Max_Min_vals_array[j] < array[i][j]:
                 Max_Min_vals_array[j] = array[i][j]
-        j + = 1
+        j += 1
 
 Result = []
 Check = False
@@ -43,7 +43,7 @@ for i in range(Count_Functions):
             Check = True
     if Check:
         Result.append(array[i])
-    j + = 1
+    j += 1
 
 print("Paretto = ")
 for res in Result:
