@@ -5,15 +5,19 @@ import matplotlib.pyplot as plt
 
 
 #Change var : 1 for  T300/976 (izo)  ;2 for Org_Glass  ;3 for Still
-Change = 1
+Change = 3
 Only_Value_in_Break_point = 1
-Q_start = 0.018036     #1
-#Q_start = 0.004655 #2
-#Q_start = 0.025 #3
-#Q_start = 0.000
+#Q_start = 0.00165 # for 1 mat
+Q_start = 0.01735 # for 3 mat
+#Q_start = 0.0024 # for 2 mat
+#Q_start = 0.0165 #For all
+
+if Only_Value_in_Break_point==0:
+    Q_start = 0
+
 #DATA
 
-
+H_coef = 3
 V = 0.2*0.2*0.00022 #m^3
 P1=1500
 P2=7800
@@ -21,8 +25,8 @@ P3=1190
 Square = 20*20
 
 
-N_x = 1
-N_y = 1
+N_x = 3
+N_y = 3
 N = N_x*N_y
 Q_max = 245/(10**6) #1 кг максимум
 mass=0
@@ -39,7 +43,7 @@ Xx = Symbol('x')
 Yy = Symbol('y')
 
 #Static_DATA
-h=0.00022
+h=0.00022*H_coef
 #h=0.00044
 #h=0.00088
 A_lenght_x = 0.2
@@ -153,10 +157,10 @@ def Draw_3d_W(Function,Values_Result,type_f):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel(Function + ' (x,y)')
-    ax.set_title(Function + ' (x,y)')
+    ax.set_xlabel('x [м]')
+    ax.set_ylabel('y [м]')
+    ax.set_zlabel(Function + ' (x,y) [м]')
+    # ax.set_title(Function + ' (x,y)')
     plt.show()
     return Max_Value
 def Draw_3d_Q(Function,Values_Result,type_f,q,Q_function):
@@ -192,10 +196,10 @@ def Draw_3d_Q(Function,Values_Result,type_f,q,Q_function):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel(Function + ' (x,y)')
-    ax.set_title(Function + ' (x,y)')
+    ax.set_xlabel('x [м]')
+    ax.set_ylabel('y [м]')
+    ax.set_zlabel(Function + ' (x,y) [МПа]')
+    # ax.set_title(Function + ' (x,y)')
     plt.show()
 def Draw_3d_Sigmas(Function, Values_Result,Type_Sigmas,U_function,V_function,W_Function,z_val,W_val,U_val,V_val):
     x_array = []
@@ -270,10 +274,10 @@ def Draw_3d_Sigmas(Function, Values_Result,Type_Sigmas,U_function,V_function,W_F
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel(Function + ' (x,y)')
-    ax.set_title(Function + ' (x,y)')
+    ax.set_xlabel('x [м]')
+    ax.set_ylabel('y [м]')
+    ax.set_zlabel(Function + ' (x,y) [МПа]')
+    # ax.set_title(Function + ' (x,y)')
     plt.show()
     return Max_Value
 def Draw_3d_Sigmas_main(Function, Values_Result,Type_Sigmas,U_function,V_function,W_Function,z_val,W_val,U_val,V_val):
@@ -340,10 +344,10 @@ def Draw_3d_Sigmas_main(Function, Values_Result,Type_Sigmas,U_function,V_functio
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel(Function + ' (x,y)')
-    ax.set_title(Function + ' (x,y)')
+    ax.set_xlabel('x [м]')
+    ax.set_ylabel('y [м]')
+    ax.set_zlabel(Function + ' (x,y) [МПа]')
+    # ax.set_title(Function + ' (x,y)')
     plt.show()
     return Max_Value
 def Draw_3d_Sigmas_main_Orto(Function, Values_Result,Type_Sigmas,U_function,V_function,W_Function,z_val,W_val,U_val,V_val):
@@ -421,10 +425,10 @@ def Draw_3d_Sigmas_main_Orto(Function, Values_Result,Type_Sigmas,U_function,V_fu
         fig = plt.figure()
         ax = plt.axes(projection='3d')
         ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
+        ax.set_xlabel('x [м]')
+        ax.set_ylabel('y [м]')
         ax.set_zlabel(Function + ' (x,y)')
-        ax.set_title(Function + ' (x,y)')
+        #ax.set_title(Function + ' (x,y)')
         plt.show()
     return Max_Value
 def Get_Sigmas_max_values(Function, Values_Result,Type_Sigmas,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function,z_val,W_val,U_val,V_val):
@@ -752,6 +756,7 @@ Max_W_values = [0]*3
 Max_Sigmas_values = [0]*3
 Es_main = [0]*6
 W_middle_values = []
+W_middle_2_values = []
 Q_values = []
 
 #Заготовочка
@@ -776,6 +781,7 @@ U_function_buf = U_function.copy()
 V_function_buf = V_function.copy()
 W_function_buf = W_Function.copy()
 z_val = -h / 2
+
 if Change == 1:
     Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1_T300, nu_T300, nu_T300, z_val)
     Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2_T300, nu_T300, nu_T300, z_val)
@@ -793,10 +799,11 @@ Count_num = 0
 Q_now =Q_start
 
 while Check:
-    if Q_now > 0.018036:
-        Check = 0
-        print(W_middle_values)
-        print(W_middle_values)
+    #if Q_now > 0.018036:
+        #Check = 0
+        #print(W_middle_values)
+        #print(W_middle_values)
+    Q_values.append(Q_now)
     Count_num +=1
     W_val = []
     U_val = []
@@ -860,7 +867,8 @@ while Check:
 
 
     W_middle_values.append(Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, W_Function, W_val,3))
-    Q_now += Q_max*40
+    W_middle_2_values.append(Get_W_Plane(A_lenght_x / 4, B_lenght_y / 4, W_Function, W_val,3))
+    Q_now += Q_max*25
 
     if Sigma_max_global > QQ and Only_Value_in_Break_point != 1:
         Check = 0
@@ -869,10 +877,12 @@ while Check:
         Q_now -= Q_max
 
 #Q_graph
-#plt.plot(W_middle_values,Q_values)
-#plt.ylabel("q , МПа")
-#plt.xlabel('W(l/2,l/2) , м')
-#plt.show()
+plt.plot(W_middle_values,Q_values)
+plt.plot(W_middle_2_values,Q_values)
+plt.ylabel("q , МПа")
+plt.xlabel('W(x,y) , м')
+plt.legend(["W l/2","W l/4"])
+plt.show()
 print((Q_now + Q_my)*(10**6))
 print(Count_num)
 
@@ -897,7 +907,7 @@ print("max V val = ",Max_W_values[2])
 z=-h/2
 
 if Change == 1:
-    Max = Draw_3d_Sigmas_main_Orto('Sigma_i',W_val,1,U_function,V_function,W_Function,z,W_val,U_val,V_val)
+    Max = Draw_3d_Sigmas_main_Orto('Критерий Хоффмана',W_val,1,U_function,V_function,W_Function,z,W_val,U_val,V_val)
     print(abs(Max))
 else:
     Draw_3d_Sigmas_main('Sigma_i',W_val,1,U_function,V_function,W_Function,z,W_val,U_val,V_val)
