@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 
 
 #Change var : 1 for  T300/976 (izo)  ;2 for Org_Glass  ;3 for Still
-Change = 3
+Change = 1
 Only_Value_in_Break_point = 1
-#Q_start = 0.00165 # for 1 mat
-Q_start = 0.01735 # for 3 mat
+Q_start = 0.0165 # for 1 mat
+#Q_start = 0.01735 # for 3 mat
 #Q_start = 0.0024 # for 2 mat
-#Q_start = 0.0165 #For all
+#Q_start = 0.03479  #For all
 
 if Only_Value_in_Break_point==0:
     Q_start = 0
 
 #DATA
 
-H_coef = 3
+H_coef = 1
 V = 0.2*0.2*0.00022 #m^3
 P1=1500
 P2=7800
@@ -25,8 +25,8 @@ P3=1190
 Square = 20*20
 
 
-N_x = 3
-N_y = 3
+N_x = 4
+N_y = 4
 N = N_x*N_y
 Q_max = 245/(10**6) #1 кг максимум
 mass=0
@@ -877,11 +877,11 @@ while Check:
         Q_now -= Q_max
 
 #Q_graph
-plt.plot(W_middle_values,Q_values)
 plt.plot(W_middle_2_values,Q_values)
+plt.plot(W_middle_values,Q_values)
 plt.ylabel("q , МПа")
 plt.xlabel('W(x,y) , м')
-plt.legend(["W l/2","W l/4"])
+plt.legend(["W l/4","W l/2"])
 plt.show()
 print((Q_now + Q_my)*(10**6))
 print(Count_num)
