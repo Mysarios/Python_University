@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 #Change var : 1 for  T300/976 (izo)  ;2 for Org_Glass  ;3 for Still
 Change = 1
 Only_Value_in_Break_point = 1
-Q_start = 0.0165 # for 1 mat
+Q_start = 0.01 # for 1 mat
 #Q_start = 0.01735 # for 3 mat
 #Q_start = 0.0024 # for 2 mat
 #Q_start = 0.03479  #For all
@@ -17,7 +17,7 @@ if Only_Value_in_Break_point==0:
 
 #DATA
 
-H_coef = 1
+H_coef = 3
 V = 0.2*0.2*0.00022 #m^3
 P1=1500
 P2=7800
@@ -25,8 +25,8 @@ P3=1190
 Square = 20*20
 
 
-N_x = 4
-N_y = 4
+N_x = 3
+N_y = 3
 N = N_x*N_y
 Q_max = 245/(10**6) #1 кг максимум
 mass=0
@@ -63,7 +63,9 @@ z = 0
 #T300/976
 E1_T300 = 1.4 * (10**5)
 E2_T300 = 0.97 * (10**4)
-nu_T300 = 0.29
+nu_12_T300 = 0.29
+nu_21_T300 = (E2_T300*nu_12_T300)/E1_T300
+print(nu_21_T300)
 G_12_T300 = 0.55 * (10**4)
 G_13_T300 = G_12_T300
 G_23_T300 = 0.33 * (10**4)
@@ -223,9 +225,9 @@ def Draw_3d_Sigmas(Function, Values_Result,Type_Sigmas,U_function,V_function,W_F
 
     if Change == 1:
         if Type_Sigmas == 1:
-            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_T300,nu_T300,z_val))
+            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_12_T300, nu_21_T300,z_val))
         if Type_Sigmas == 2:
-            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_T300,nu_T300,z_val))
+            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_12_T300, nu_21_T300,z_val))
         if Type_Sigmas == 3:
             Tay_xy_Function = (Get_Sigma_tay_Orto(U_function,V_function,W_Function,G_12_T300,z_val))
     if Change == 2:
@@ -304,8 +306,8 @@ def Draw_3d_Sigmas_main(Function, Values_Result,Type_Sigmas,U_function,V_functio
 
 
     if Change == 1:
-            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_T300,nu_T300,z_val))
-            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_T300,nu_T300,z_val))
+            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_12_T300, nu_21_T300,z_val))
+            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_12_T300, nu_21_T300,z_val))
             Tay_xy_Function = (Get_Sigma_tay_Orto(U_function,V_function,W_Function,G_12_T300,z_val))
     if Change == 2:
             Sigma_x_Function = (Get_Sigma_x_Izo(U_function,V_function,W_Function,E1_OG,nu_OG,z_val))
@@ -374,8 +376,8 @@ def Draw_3d_Sigmas_main_Orto(Function, Values_Result,Type_Sigmas,U_function,V_fu
 
 
     if Change == 1:
-            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_T300,nu_T300,z_val))
-            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_T300,nu_T300,z_val))
+            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_12_T300, nu_21_T300,z_val))
+            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_12_T300, nu_21_T300,z_val))
             Tay_xy_Function = (Get_Sigma_tay_Orto(U_function,V_function,W_Function,G_12_T300,z_val))
     if Change == 2:
             Sigma_x_Function = (Get_Sigma_x_Izo(U_function,V_function,W_Function,E1_OG,nu_OG,z_val))
@@ -490,8 +492,8 @@ def Get_Sigmas_max_values_Orto(Function, Values_Result,Type_Sigmas,U_function,V_
 
 
     if Change == 1:
-            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_T300,nu_T300,z_val))
-            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_T300,nu_T300,z_val))
+            Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1_T300,nu_12_T300, nu_21_T300,z_val))
+            Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2_T300,nu_12_T300, nu_21_T300,z_val))
             Tay_xy_Function = (Get_Sigma_tay_Orto(U_function,V_function,W_Function,G_12_T300,z_val))
     if Change == 2:
             Sigma_x_Function = (Get_Sigma_x_Izo(U_function,V_function,W_Function,E1_OG,nu_OG,z_val))
@@ -515,7 +517,7 @@ def Get_Sigmas_max_values_Orto(Function, Values_Result,Type_Sigmas,U_function,V_
     Buf_2 = (1 / F2_max_T300) + (1 / F2_min_T300)
     Buf_3 = 1 / (F1_max_T300 * F1_min_T300)
     Buf_4 = 1 / (F2_max_T300 * F2_min_T300)
-    Buf_6 = 1 / (F12_max_T300*F12_max_T300)
+    Buf_6 = -1 / (F12_max_T300*F12_max_T300)
 
     First_val = (1/2) * (Buf_4 - Buf_3)
     Second_Val = (1/2) * (Buf_3 - Buf_4)
@@ -525,9 +527,7 @@ def Get_Sigmas_max_values_Orto(Function, Values_Result,Type_Sigmas,U_function,V_
     Max_Sigmas_values[0] = Sigma_x_Function.subs([(Xx,A_lenght_x/2), (Yy,B_lenght_y/2)])
     Max_Sigmas_values[1] = Sigma_y_Function.subs([(Xx, A_lenght_x/2), (Yy,B_lenght_y/2)])
     Max_Sigmas_values[2] = Tay_xy_Function.subs([(Xx, A_lenght_x/2), (Yy, B_lenght_y/2)])
-    Max_Value = First_val*(Max_Sigmas_values[0]**2) + Second_Val*(Max_Sigmas_values[1]**2) \
-                                + Buf_1 * Max_Sigmas_values[0] + Buf_2 * Max_Sigmas_values[1] \
-                                - Third_Val*((Max_Sigmas_values[0] - Max_Sigmas_values[2] )**2) - Buf_6*(Max_Sigmas_values[2]**2)
+    Max_Value = First_val*(Max_Sigmas_values[0]**2) + Second_Val*(Max_Sigmas_values[1]**2) + Buf_1 * Max_Sigmas_values[0] + Buf_2 * Max_Sigmas_values[1] - Third_Val*((Max_Sigmas_values[0] - Max_Sigmas_values[1])**2) - Buf_6*(Max_Sigmas_values[2]**2)
 
 
     return Max_Value
@@ -783,8 +783,8 @@ W_function_buf = W_Function.copy()
 z_val = -h / 2
 
 if Change == 1:
-    Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1_T300, nu_T300, nu_T300, z_val)
-    Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2_T300, nu_T300, nu_T300, z_val)
+    Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1_T300, nu_12_T300, nu_21_T300, z_val)
+    Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2_T300, nu_12_T300, nu_21_T300, z_val)
     Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G_12_T300, z_val)
 if Change == 2:
     Sigma_x_Function = (Get_Sigma_x_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG, z_val))
@@ -813,10 +813,10 @@ while Check:
     # Es main
     z_num = 0
     if Change == 1:
-        Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1_T300, nu_T300, nu_T300) * e_xz(z_num, U_function, V_function,W_Function)
-        Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E2_T300, nu_T300, nu_T300) * e_yz(z_num, U_function,V_function,W_Function)
+        Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1_T300,  nu_12_T300, nu_21_T300) * e_xz(z_num, U_function, V_function,W_Function)
+        Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E2_T300,  nu_12_T300, nu_21_T300) * e_yz(z_num, U_function,V_function,W_Function)
         Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_Function, G_12_T300) * y_xz(z_num, U_function, V_function,W_Function)
-        Es_main[3] = M_x_Orto(W_Function, E1_T300, nu_T300, nu_T300) * ksi_1(W_Function) + M_y_Orto(W_Function, E2_T300,nu_T300,nu_T300) * ksi_2(W_Function)
+        Es_main[3] = M_x_Orto(W_Function, E1_T300, nu_12_T300, nu_21_T300) * ksi_1(W_Function) + M_y_Orto(W_Function, E2_T300,nu_12_T300, nu_21_T300) * ksi_2(W_Function)
         Es_main[4] = 2 * M_xy_Orto(W_Function, G_12_T300) * ksi_12(W_Function)
     if Change == 2:
         Es_main[0] = N_x_Izo(z_num, U_function, V_function, W_Function, E1_OG, nu_OG) * e_xz(z_num, U_function, V_function,W_Function)
@@ -861,7 +861,7 @@ while Check:
 
     if Change == 1:
         Sigma_max_global = abs(Get_Sigmas_max_values_Orto('Sigma_i', W_val, 1, U_function, V_function, W_Function, z, W_val, U_val, V_val))
-        #print(Sigma_max_global)
+        print(Sigma_max_global)
     else:
         Sigma_max_global = ((Max_Sigmas_values[0]**2) + (Max_Sigmas_values[1]**2) - Max_Sigmas_values[0]*Max_Sigmas_values[1] + 3*(Max_Sigmas_values[2]**2))**(1/2)
 
