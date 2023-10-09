@@ -1,24 +1,25 @@
 from sympy import *
+import sympy as sym
 import numpy as np
 import math as m
 import matplotlib.pyplot as plt
 
 
 A_Numeric = 1
-#Change var : 1 for  T300/976 (izo)  ;2 for Org_Glass  ;3 for Still
-Change = 2
+Change = 1
 Only_Value_in_Break_point = 1
-Q_start = 0.00001 # for 1 mat
-#Q_start = 0.01735 # for 3 mat
-#Q_start = 0.0024 # for 2 mat
-#Q_start = 0.03479  #For all
+
 
 if Only_Value_in_Break_point==1:
     Q_start = 0
 
+Q_start = 1.34/10
 #DATA
 
 H_coef = 1
+
+eps = 0.00000005
+Max_q_T = 2
 
 V = 0.2*0.2*0.00022 #m^3
 P1=1500
@@ -34,6 +35,8 @@ N = N_x*N_y
 Q_max = 245/(10**6) #1 кг максимум
 
 mass=0
+if Change == 0:
+    mass = 0
 if Change == 1:
     mass = P1*V
 if Change == 2:
@@ -48,8 +51,7 @@ Yy = Symbol('y')
 
 #Static_DATA
 h=0.09*H_coef
-#h=0.00044
-#h=0.00088
+
 A_lenght_x = 60*h
 B_lenght_y = 60*h
 R_1_x = 225*h
@@ -62,14 +64,12 @@ z = 0
 
 
 #Static_DATA for variants:
-
 #Ort:
 #T300/976
 E1_T300 = 1.4 * (10**5)
 E2_T300 = 0.97 * (10**4)
 nu_12_T300 = 0.29
 nu_21_T300 = (E2_T300*nu_12_T300)/E1_T300
-print(nu_21_T300)
 G_12_T300 = 0.55 * (10**4)
 G_13_T300 = G_12_T300
 G_23_T300 = 0.33 * (10**4)
@@ -127,7 +127,6 @@ def Get_W_Plane(x_val,y_val,function,Values,type):
             for i in range(1, N_y + 1):
                 W_result += Values[(j-1)*N_x + i-1] * sin((2*i - 1) * x_val * m.pi / A_lenght_x) * sin((2*j - 1) * y_val * m.pi / B_lenght_y)
 
-    #print(W_result)
     return W_result
 def Draw_3d_W(Function,Values_Result,type_f):
     x_array = []
@@ -611,19 +610,18 @@ def ksi_1(PsiX_function,PsiY_function):
     return Result
 def ksi_2(PsiX_function,PsiY_function):
     if (A_Numeric):
-        Result = (1 / B) * PsiX_function.diff(Yy)
+        Result = (1 / B) * PsiY_function.diff(Yy)
     else:
-        Result = (1 / B) * PsiX_function.diff(Yy) + (1 / (A * B)) * B.diff(Xx) * PsiY_function
+        Result = (1 / B) * PsiY_function.diff(Yy) + (1 / (A * B)) * B.diff(Xx) * PsiX_function
 
     return Result
 def ksi_12(PsiX_function,PsiY_function):
-    Result_3 = 0
+
+    Result_1 = (1 / B) * PsiX_function.diff(Yy)
+    Result_2 = (1 / A) * PsiY_function.diff(Xx)
     if (A_Numeric):
-        Result_1 = (1 / B) * PsiX_function.diff(Yy)
-        Result_2 = (1 / A) * PsiY_function.diff(Xx)
+        Result_3 = 0
     else:
-        Result_1 = (1 / B) * PsiX_function.diff(Yy)
-        Result_2 = (1 / A) * PsiY_function.diff(Xx)
         Result_3 = (1/(A*B))*(A.diff(Yy)*PsiX_function + B.diff(Xx)*PsiY_function)
 
     Result = (Result_1 + Result_2 - Result_3)/2
@@ -633,11 +631,11 @@ def Tetta_1(W_function,U_function):
     return -(1/A)*(W_function.diff(Xx))-K_x*U_function
 def Tetta_2(W_function,V_function):
     return -(1/B)*(W_function.diff(Yy))-K_y*V_function
-def Q_x(PsiX_function,PsiY_function,G_13,Tetta_1):
-    Result = k*G_13*h*(PsiX_function - Tetta_1)
+def Q_x(PsiX_function,PsiY_function,G_13,W_function,U_function):
+    Result = k*G_13*h*(PsiX_function - Tetta_1(W_function,U_function))
     return Result
-def Q_y(PsiX_function,PsiY_function,G_23,Tetta_2):
-    Result = k*G_23*h*(PsiY_function - Tetta_2)
+def Q_y(PsiX_function,PsiY_function,G_23,W_function,U_function):
+    Result = k*G_23*h*(PsiY_function - Tetta_2(W_function,U_function))
     return Result
 
 def e_x(U_function,V_function,W_Function):
@@ -679,36 +677,38 @@ def y_xz(z_value,U_function,V_function,W_Function,PsiX_function,PsiY_function):
 
 #Ortotrop functions
 def N_x_Orto(z,U_function,V_function,W_Function,E_1,nu_12,nu_21):
-    Result = (E_1 / (1 -nu_12*nu_21)) * h *(e_x(z,U_function,V_function,W_Function) + nu_21 *  e_y(z,U_function,V_function,W_Function))
+    Result = (E_1 / (1 -nu_12*nu_21)) * h * (e_x(U_function,V_function,W_Function) + nu_21 * e_y(U_function,V_function,W_Function))
     return Result
 def N_y_Orto(z, U_function, V_function, W_Function,E_2,nu_12,nu_21):
-    Result = (E_2 / (1 - nu_12 * nu_21)) * h * ( e_y(z, U_function, V_function, W_Function) + nu_12 * e_x(z, U_function, V_function, W_Function))
+    Result = (E_2 / (1 - nu_12 * nu_21)) * h * (e_y(U_function, V_function, W_Function) + nu_12 * e_x(U_function, V_function, W_Function))
     return Result
 def N_xy_Orto(z, U_function, V_function, W_Function,G_12):
-    Result = G_12 * h * y_xz(z,U_function,V_function,W_Function)
+    Result = G_12 * h * y_xy(U_function,V_function,W_Function)
     return Result
 
 def M_x_Orto(W_Function,E_1,nu_12,nu_21):
-    Result = (E_1 / (1 - nu_12 * nu_21)) * ((h**3)/12) * ( ksi_2(W_Function) + nu_21 * ksi_1(W_Function))
+    Result = (E_1 / (1 - nu_12 * nu_21)) * ((h**3)/12) * ( ksi_2(PsiX_function, PsiY_function) + nu_21 * ksi_1(PsiX_function, PsiY_function))
     return Result
 def M_y_Orto(W_Function,E_2,nu_12,nu_21):
-    Result = (E_2 / (1 - nu_12 * nu_21)) * ((h**3)/12) * ( ksi_1(W_Function) + nu_12 * ksi_2(W_Function))
+    Result = (E_2 / (1 - nu_12 * nu_21)) * ((h**3)/12) * ( ksi_1(PsiX_function, PsiY_function) + nu_12 * ksi_2(PsiX_function, PsiY_function))
     return Result
 def M_xy_Orto(W_Function,G_12):
-    Result = 2 * G_12 * ((h**3)/12) *  ksi_12(W_Function)
+    Result = 2 * G_12 * ((h**3)/12) *  ksi_12(PsiX_function, PsiY_function)
     return Result
 
 
 def Get_Sigma_x_Orto(U_function,V_function,W_Function,E_1,nu_12,nu_21,z_val,PsiX_function,PsiY_function):
-    Result = (E_1 / (1 - nu_12 * nu_21)) * (e_x(z_val, U_function, V_function, W_Function) + nu_21 * e_y(z_val, U_function, V_function, W_Function)
-                                            + z_val(ksi_1(PsiX_function,PsiY_function) + nu_21*ksi_2(PsiX_function,PsiY_function)))
+    Result = (E_1 / (1 - nu_12 * nu_21)) * (e_xz(z_val, U_function, V_function, W_Function,PsiX_function,PsiY_function)
+                                            + nu_21 * e_yz(z_val, U_function, V_function, W_Function,PsiX_function,PsiY_function)
+                                            + z_val*ksi_1(PsiX_function,PsiY_function) + nu_21*ksi_2(PsiX_function,PsiY_function))
     return Result
 def Get_Sigma_y_Orto(U_function,V_function,W_Function,E_2,nu_12,nu_21,z_val,PsiX_function,PsiY_function):
-    Result = (E_2 / (1 - nu_12 * nu_21)) * (e_yz(z_val, U_function, V_function, W_Function) + nu_12 * e_xz(z_val, U_function, V_function, W_Function)
-                                            + z_val(ksi_2(PsiX_function,PsiY_function) + nu_12*ksi_1(PsiX_function,PsiY_function)))
+    Result = (E_2 / (1 - nu_12 * nu_21)) * (e_yz(z_val, U_function, V_function, W_Function,PsiX_function,PsiY_function)
+                                            + nu_12 * e_xz(z_val, U_function, V_function, W_Function,PsiX_function,PsiY_function)
+                                            + z_val*ksi_2(PsiX_function,PsiY_function) + nu_12*ksi_1(PsiX_function,PsiY_function))
     return Result
 def Get_Sigma_tay_Orto(U_function,V_function,W_Function,G_12,z_val,PsiX_function,PsiY_function):
-    Result = G_12 * (y_xy(z_val,U_function,V_function,W_Function) + 2*z_val*ksi_12(PsiX_function,PsiY_function))
+    Result = G_12 * (y_xz(z_val,U_function,V_function,W_Function,PsiX_function,PsiY_function) + 2*z_val*ksi_12(PsiX_function,PsiY_function))
 
     return Result
 
@@ -720,7 +720,7 @@ def N_y_Izo(z, U_function, V_function, W_Function,E,nu):
     Result = (E / (1 - nu * nu)) * h * ( e_y(z, U_function, V_function, W_Function) + nu * e_x(z, U_function, V_function, W_Function))
     return Result
 def N_xy_Izo(z, U_function, V_function, W_Function,E,nu):
-    Result = (E*h*y_x(z, U_function, V_function, W_Function)) / (2  + 2*nu)
+    Result = (E*h*y_xz(z, U_function, V_function, W_Function)) / (2  + 2*nu)
     return Result
 
 def M_x_Izo(W_Function,E,nu):
@@ -733,14 +733,16 @@ def M_xy_Izo(W_Function,E,nu):
     Result = E * ((h**3)/12) *  ksi_12(PsiX_function,PsiY_function)/(1 + nu)
     return Result
 
-def Get_Sigma_x_Izo(U_function,V_function,W_Function,E,nu,z_val):
-    Result = (E / (1 -nu*nu))*(e_xz(z_val,U_function,V_function,W_Function) + nu *  e_yz(z_val,U_function,V_function,W_Function))
+def Get_Sigma_x_Izo(U_function,V_function,W_Function,PsiX_function,PsiY_function,E,nu,z_val):
+    Result = (E / (1 -nu*nu))*(e_xz(z_val,U_function,V_function,W_Function,PsiX_function,PsiY_function)
+                               + nu *  e_yz(z_val,U_function,V_function,W_Function,PsiX_function,PsiY_function))
     return Result
-def Get_Sigma_y_Izo(U_function,V_function,W_Function,E,nu,z_val):
-    Result = (E / (1 - nu * nu)) * (e_yz(z_val, U_function, V_function, W_Function) + nu * e_xz(z_val, U_function, V_function, W_Function))
+def Get_Sigma_y_Izo(U_function,V_function,W_Function,PsiX_function,PsiY_function,E,nu,z_val):
+    Result = (E / (1 - nu * nu)) * (e_yz(z_val, U_function, V_function, W_Function,PsiX_function,PsiY_function)
+                                    + nu * e_xz(z_val, U_function, V_function, W_Function,PsiX_function,PsiY_function))
     return Result
-def Get_Sigma_tay_Izo(U_function,V_function,W_Function,E,nu,z_val):
-    Result = (E / (2 + 2*nu)) * y_xz(z_val,U_function,V_function,W_Function)
+def Get_Sigma_tay_Izo(U_function,V_function,W_Function,PsiX_function,PsiY_function,E,nu,z_val):
+    Result = (E / (2 + 2*nu)) * y_xz(z_val,U_function,V_function,W_Function,PsiX_function,PsiY_function)
     return Result
 
 def q_function(q_0,q_sv):
@@ -758,7 +760,8 @@ def q_function(q_0,q_sv):
     A_2[2] = -4 / ((B_lenght_y - A1) ** 2)
 
 
-    Result = q_0*(A_1[0] + A_1[1]*Xx + A_1[2]*(Xx**2)) * (A_2[0] + A_2[1]*Yy + A_2[2]*(Yy**2)) + q_sv
+    Result = q_0*(A_1[0] + A_1[1]*Xx + A_1[2]*(Xx**2)) * (A_2[0] + A_2[1]*Yy + A_2[2]*(Yy**2))
+
     return Result
 def Get_Answer(Es_Get,w_coef,u_coef,v_coef):
     Es = Es_Get.copy()
@@ -783,7 +786,6 @@ def Get_Answer(Es_Get,w_coef,u_coef,v_coef):
     Zeroes = [0] * N * 3
     Buf_Symbols = []
 
-    #print("Start diff)")
     for index in range(1, 4):
         Result.append(Result_buf)
 
@@ -807,9 +809,198 @@ def Get_Answer(Es_Get,w_coef,u_coef,v_coef):
 
     for solution in linsolve(Buf, Buf_Symbols):
         Result = solution
-    #print("End diff)")
-    return Result
 
+    return Result
+def Get_Jacobian(Function_E, Result_w):
+    Jacobian = [0]*N*5
+    Def_Function = [0]*N*5
+    Symbol_Function = [0] * N*5
+
+    for i in range(0, N_x):
+        Symbol_Function[i] = 'w' + str(i + 1)
+        Symbol_Function[i + N_x] = 'u' + str(i + 1)
+        Symbol_Function[i +N_x * 2] = 'v' + str(i + 1)
+        Symbol_Function[i + N_x * 3] = 'PsiX' + str(i + 1)
+        Symbol_Function[i + N_x * 4] = 'PsiY' + str(i + 1)
+
+    for i in range(0,N*5):
+        Jacobian[i] = [0]*N*5
+        Def_Function[i] = Function_E.diff(Symbol_Function[i])
+        #print("D[",i,"] =",Def_Function[i])
+
+    for row in range(0,N*5):
+        for column in range(0,N*5):
+            Jacobian[row][column] = Def_Function[row].diff(Symbol_Function[column])
+            #print("J[", row, "][",column,"] =", Jacobian[row][column])
+            for W_coefs in range(0,N*5):
+                Jacobian[row][column] = Jacobian[row][column].subs((Symbol_Function[W_coefs]), (Result_w[W_coefs]))
+
+    return Jacobian
+def Get_New_iterarion(Function_E,Jackobi_inv,Last_step_X,a):
+    Def_Function = [0] * N* 5
+
+    Symbol_Function = [0] * N * 5
+
+    for i in range(0, N_x):
+        Symbol_Function[i] = 'w' + str(i + 1)
+        Symbol_Function[i + N_x] = 'u' + str(i + 1)
+        Symbol_Function[i + N_x * 2] = 'v' + str(i + 1)
+        Symbol_Function[i + N_x * 3] = 'PsiX' + str(i + 1)
+        Symbol_Function[i + N_x * 4] = 'PsiY' + str(i + 1)
+
+    for i in range(0, N_x*5):
+        Def_Function[i] = Function_E.diff(Symbol_Function[i])
+        for W_coefs in range(0, N_x*5):
+            Def_Function[i] = Def_Function[i].subs(Symbol_Function[W_coefs], (Last_step_X[W_coefs]))
+
+    Def_Function = sym.Matrix(Def_Function)
+    W = sym.Matrix(Last_step_X)
+    #print("W =" ,W)
+    #print("a =",a)
+    #print("Ja =",Jackobi_inv)
+    #print("DF =",Def_Function)
+    W = W - a*(Jackobi_inv * Def_Function)
+    return W
+def Ne_Lin_Function_Loop(w_coefs,fig, axs,Es_Get):
+    Ee = Symbol('E')
+    Hh = Symbol('h')
+    Qq = Symbol('q')
+    Ll = Symbol('l')
+
+    #Q_now = 0.00001
+    Q_now = 0
+    q_T = 1.34 / 100
+    Q_step = q_T/(Size/Max_q_T)
+
+    q_for_graph =[]
+    W_Result = [0]*(Size+2)
+    W_Result[0] = [0] * N
+
+    Es = Es_Get.copy()
+
+    Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
+    Es[1] = integrate(Es[1], (Xx, Start_integral, A_lenght_x))
+    Es[2] = integrate(Es[2], (Xx, Start_integral, A_lenght_x))
+    Es[3] = integrate(Es[3], (Xx, Start_integral, A_lenght_x))
+    Es[4] = integrate(Es[4], (Xx, Start_integral, A_lenght_x))
+    Es[5] = integrate(Es[5], (Xx, Start_integral, A_lenght_x))
+
+    Es[0] = (1 / 2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
+    Es[1] = (1 / 2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
+    Es[2] = (1 / 2) * integrate(Es[2], (Yy, Start_integral, B_lenght_y))
+    Es[3] = (1 / 2) * integrate(Es[3], (Yy, Start_integral, B_lenght_y))
+    Es[4] = (1 / 2) * integrate(Es[4], (Yy, Start_integral, B_lenght_y))
+    Es[5] = (1 / 2) * integrate(Es[5], (Yy, Start_integral, B_lenght_y))
+
+    Buf_Function = Es[0] +  Es[1] + Es[2] + Es[3] + Es[4] + Es[5]
+    Buf_Function = Buf_Function.subs([(Ee, E), (Hh, h), (pi, m.pi)])
+
+    #Цикл по разным q
+    for j in range(1,Size+2):
+        print("q_now_Not_Linear = ", Q_now)
+        q_for_graph.append(Q_now)
+
+        Main_Function = Buf_Function.subs([(Qq, Q_now)])
+        W_Result[j] = Nuton_Iter(Main_Function,eps, W_Result[j-1], w_coefs)
+
+        Q_now += Q_step
+
+    W_graph = []
+    ##for i in range(1,Size+2):
+        ##W_graph.append(Get_W(L/2,W_Result[i]))
+
+    axs.plot(W_graph,q_for_graph)
+    return W_Result
+def Ne_Lin_Function(w_coefs,Es_Get,Q__T):
+    Ee = Symbol('E')
+    Hh = Symbol('h')
+    Qq = Symbol('q')
+    Ll = Symbol('l')
+
+    W_Result = [0]*N*5
+
+    Es = Es_Get.copy()
+    Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
+    Es[1] = integrate(Es[1], (Xx, Start_integral, A_lenght_x))
+    Es[2] = integrate(Es[2], (Xx, Start_integral, A_lenght_x))
+    Es[3] = integrate(Es[3], (Xx, Start_integral, A_lenght_x))
+    Es[4] = integrate(Es[4], (Xx, Start_integral, A_lenght_x))
+    Es[5] = integrate(Es[5], (Xx, Start_integral, A_lenght_x))
+    Es[6] = integrate(Es[6], (Xx, Start_integral, A_lenght_x))
+    Es[7] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
+
+    Es[0] = (1 / 2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
+    Es[1] = (1 / 2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
+    Es[2] = (1 / 2) * integrate(Es[2], (Yy, Start_integral, B_lenght_y))
+    Es[3] = (1 / 2) * integrate(Es[3], (Yy, Start_integral, B_lenght_y))
+    Es[4] = (1 / 2) * integrate(Es[4], (Yy, Start_integral, B_lenght_y))
+    Es[5] = (1 / 2) * integrate(Es[5], (Yy, Start_integral, B_lenght_y))
+    Es[6] = (1 / 2) * integrate(Es[6], (Yy, Start_integral, B_lenght_y))
+    Es[7] = (1 / 2) * integrate(Es[7], (Yy, Start_integral, B_lenght_y))
+
+    Buf_Function = Es[0] + Es[1] + Es[2] + Es[3] + Es[4] + Es[5]
+    Buf_Function = Buf_Function.subs([(Ee, E), (Hh, h), (pi, m.pi), (Qq, Q__T)])
+    ##Main_Function = Buf_Function.subs([(Ee, E), (Hh, h), (Qq, Q__T), (Ll, 15), (pi, m.pi)])
+
+    print(Buf_Function)
+
+    W_Result = Nuton_Iter(Buf_Function, eps, W_Result, w_coefs)
+    print("Result =",W_Result)
+
+    return W_Result
+#Nut iter
+def Nuton_Iter(Function_E,eps,w0,w_coefs):
+    All_Results = []
+    Res_now = [0]*N*5
+    Res_Last_now = Res_now
+    Res_new = []
+
+    Now_eps = 1
+    Check_Loop =1
+    Loop = 0
+
+    Count_Iterions = 0
+    New_Eps = [0]*N
+
+    while(Now_eps > eps):
+        Count_Iterions += 1
+        Max_eps = 0
+
+        Jacobi = Get_Jacobian(Function_E,Res_now)
+        Jackobi_Matrix = sym.Matrix(Jacobi)
+        Jacobi_Invariant = Jackobi_Matrix.inv()
+
+        Res_new = Get_New_iterarion(Function_E,Jacobi_Invariant,Res_now,Check_Loop)
+        #print("RN = ",Res_new)
+        np.array(Res_new).astype(np.float64)
+
+        for i in range(0,N):
+            New_Eps[i] = abs(Res_new[i] - Res_now[i])
+            if(New_Eps[i] > Max_eps):
+                Max_eps = New_Eps[i]
+
+        Res_Last_now = Res_now
+        Now_eps = Max_eps
+        Res_now = Res_new
+        All_Results.append(Res_now)
+
+        if Count_Iterions > 10:
+            Check_Loop = Check_Loop/10
+            Res_now = Res_Last_now
+            if All_Results[Count_Iterions-3][0] < All_Results[Count_Iterions-2][0] < All_Results[Count_Iterions-1][0]:
+                if Check_Loop != 1:
+                    Check_Loop *= 10
+                Res_now = Res_new
+            if All_Results[Count_Iterions-3][0] > All_Results[Count_Iterions-2][0] > All_Results[Count_Iterions-1][0]:
+                if Check_Loop != 1:
+                    Check_Loop *= 10
+                Res_now = Res_new
+
+        if Count_Iterions > 50:
+            Now_eps = 0
+        print("New_iteration = ", Res_now)
+
+    return Res_now
 
 #Main code
 #Collect W-V func
@@ -818,6 +1009,7 @@ u_vals = Get_u_coefs()
 v_vals = Get_v_coefs()
 PsiX_vals = Get_PsiX_coefs()
 PsiY_vals = Get_PsiY_coefs()
+
 
 W_Function = Get_W_function_vals(w_vals)
 U_function = Get_U_function_vals(u_vals)
@@ -828,7 +1020,7 @@ PsiY_function = Get_PsiY_function_vals(PsiY_vals)
 #Заготовочка array's
 Max_W_values = [0]*3
 Max_Sigmas_values = [0]*3
-Es_main = [0]*6
+Es_main = [0]*8
 W_middle_values = []
 W_middle_2_values = []
 Q_values = []
@@ -843,6 +1035,9 @@ Q_function = 5 * Xx
 #Sigma max
 QQ = 0
 Check = 1
+
+if Change == 0:
+    QQ = 0
 if Change == 1:
     QQ = 1
 if Change == 2:
@@ -859,98 +1054,117 @@ PsiY_function_buf = PsiY_function.copy()
 z_val = -h / 2
 
 if Change == 1:
-    Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1_T300, nu_12_T300, nu_21_T300, z_val)
-    Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2_T300, nu_12_T300, nu_21_T300, z_val)
-    Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G_12_T300, z_val)
+    Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1_T300, nu_12_T300, nu_21_T300,
+                                        z_val,PsiX_function_buf,PsiY_function_buf)
+    Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2_T300, nu_12_T300, nu_21_T300,
+                                        z_val,PsiX_function_buf,PsiY_function_buf)
+    Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G_12_T300,
+                                        z_val,PsiX_function_buf,PsiY_function_buf)
 if Change == 2:
-    Sigma_x_Function = (Get_Sigma_x_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG, z_val))
-    Sigma_y_Function = (Get_Sigma_y_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG, z_val))
-    Tay_xy_Function = (Get_Sigma_tay_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG, z_val))
+    Sigma_x_Function = Get_Sigma_x_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG,
+                                        z_val,PsiX_function_buf,PsiY_function_buf)
+    Sigma_y_Function = Get_Sigma_y_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG,
+                                        z_val,PsiX_function_buf,PsiY_function_buf)
+    Tay_xy_Function = Get_Sigma_tay_Izo(U_function_buf, V_function_buf, W_function_buf, E1_OG, nu_OG,
+                                        z_val,PsiX_function_buf,PsiY_function_buf)
 if Change == 3:
-    Sigma_x_Function = (Get_Sigma_x_Izo(U_function_buf, V_function_buf, W_function_buf, E1_Still, nu_Still, z_val))
-    Sigma_y_Function = (Get_Sigma_y_Izo(U_function_buf, V_function_buf, W_function_buf, E1_Still, nu_Still, z_val))
-    Tay_xy_Function = (Get_Sigma_tay_Izo(U_function_buf, V_function_buf, W_function_buf, E1_Still, nu_Still, z_val))
+    Sigma_x_Function = (Get_Sigma_x_Izo(U_function_buf, V_function_buf, W_function_buf, E1_Still, nu_Still,
+                                        z_val,PsiX_function_buf,PsiY_function_buf))
+    Sigma_y_Function = (Get_Sigma_y_Izo(U_function_buf, V_function_buf, W_function_buf, E1_Still, nu_Still,
+                                        z_val,PsiX_function_buf,PsiY_function_buf))
+    Tay_xy_Function = (Get_Sigma_tay_Izo(U_function_buf, V_function_buf, W_function_buf, E1_Still, nu_Still,
+                                        z_val,PsiX_function_buf,PsiY_function_buf))
 
 Count_num = 0
 Q_now =Q_start
 
+##dw = Lin_Function(w_coefs,y_1,q_1,Q__T)
+
 while Check:
-    #if Q_now > 0.018036:
-        #Check = 0
-        #print(W_middle_values)
-        #print(W_middle_values)
     Q_values.append(Q_now)
     Count_num +=1
     W_val = []
     U_val = []
     V_val = []
+    PsiX_val = []
+    PsiY_val = []
     W_values = []
 
     # Es main
     z_num = 0
     if Change == 1:
-        Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1_T300,  nu_12_T300, nu_21_T300) * e_xz(z_num, U_function, V_function,W_Function)
-        Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E2_T300,  nu_12_T300, nu_21_T300) * e_yz(z_num, U_function,V_function,W_Function)
-        Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_Function, G_12_T300) * y_xz(z_num, U_function, V_function,W_Function)
-        Es_main[3] = M_x_Orto(W_Function, E1_T300, nu_12_T300, nu_21_T300) * ksi_1(W_Function) + M_y_Orto(W_Function, E2_T300,nu_12_T300, nu_21_T300) * ksi_2(W_Function)
-        Es_main[4] = 2 * M_xy_Orto(W_Function, G_12_T300) * ksi_12(W_Function)
+        Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1_T300,  nu_12_T300, nu_21_T300) * e_x(U_function, V_function,W_Function)
+        Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E2_T300,  nu_12_T300, nu_21_T300) * e_y(U_function,V_function,W_Function)
+        Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_Function, G_12_T300) * y_xy(U_function, V_function,W_Function)
+        Es_main[3] = M_x_Orto(W_Function, E1_T300, nu_12_T300, nu_21_T300) * ksi_1(PsiX_function, PsiY_function) + M_y_Orto(W_Function, E2_T300,nu_12_T300, nu_21_T300) * ksi_2(PsiX_function, PsiY_function)
+        Es_main[4] = 2 * M_xy_Orto(W_Function, G_12_T300) * ksi_12(PsiX_function, PsiY_function)
+        Es_main[5] = Q_x(PsiX_function, PsiY_function, G_13_T300, W_Function, U_function)
+        Es_main[6] = Q_y(PsiX_function, PsiY_function, G_23_T300, W_Function, U_function)
     if Change == 2:
         Es_main[0] = N_x_Izo(z_num, U_function, V_function, W_Function, E1_OG, nu_OG) * e_xz(z_num, U_function, V_function,W_Function)
         Es_main[1] = N_y_Izo(z_num, U_function, V_function, W_Function, E1_OG, nu_OG) * e_yz(z_num, U_function, V_function,W_Function)
         Es_main[2] = (N_xy_Izo(z_num, U_function, V_function, W_Function, E1_Still, nu_Still) + N_xy_Izo(z_num, U_function,V_function,W_Function, E1_Still,nu_Still)) * y_xz(z_num, U_function, V_function, W_Function)
         Es_main[3] = M_x_Izo(W_Function, E1_OG, nu_OG) * ksi_1(W_Function) + M_y_Izo(W_Function, E1_OG, nu_OG) * ksi_2(W_Function)
         Es_main[4] = (M_xy_Izo(W_Function, E1_OG, nu_OG) + M_xy_Izo(W_Function, E1_OG, nu_OG)) * ksi_12(W_Function)
+        Es_main[5] = Q_x(PsiX_function, PsiY_function, G_13_T300, W_Function, U_function)
+        Es_main[6] = Q_y(PsiX_function, PsiY_function, G_23_T300, W_Function, U_function)
     if Change == 3:
         Es_main[0] = N_x_Izo(z_num, U_function, V_function, W_Function, E1_Still, nu_Still) * e_xz(z_num, U_function,V_function, W_Function)
         Es_main[1] = N_y_Izo(z_num, U_function, V_function, W_Function, E1_Still, nu_Still) * e_yz(z_num, U_function,V_function, W_Function)
         Es_main[2] = (N_xy_Izo(z_num, U_function, V_function, W_Function, E1_Still, nu_Still) + N_xy_Izo(z_num, U_function,V_function,W_Function,E1_Still,nu_Still)) * y_xz(z_num, U_function, V_function, W_Function)
         Es_main[3] = M_x_Izo(W_Function, E1_Still, nu_Still) * ksi_1(W_Function) + M_y_Izo(W_Function, E1_Still,nu_Still) * ksi_2(W_Function)
         Es_main[4] = (M_xy_Izo(W_Function, E1_Still, nu_Still) + M_xy_Izo(W_Function, E1_Still, nu_Still)) * ksi_12(W_Function)
+        Es_main[5] = Q_x(PsiX_function, PsiY_function, G_13_T300, W_Function, U_function)
+        Es_main[6] = Q_y(PsiX_function, PsiY_function, G_23_T300, W_Function, U_function)
 
-    Es_main[5] = (-2)*q_function(Q_now,Q_my)*W_Function
+    Es_main[7] = (-2)*q_function(Q_now,Q_my)*W_Function
     Es_main_buf = Es_main.copy()
     Q_function = q_function(Q_now, Q_my)
 
 
-    W_values = Get_Answer(Es_main_buf, w_vals, u_vals, v_vals)
+    #W_values = Get_Answer(Es_main_buf, w_vals, u_vals, v_vals)
+    print("Start Nelin")
+    W_values = Ne_Lin_Function(0, Es_main_buf, Q_function)
+    Check = 0
 
-
-    print(W_values)
+    #print(W_values)
     for i in range(1, N + 1):
         W_val.append(W_values[i - 1])
         U_val.append(W_values[i - 1 + N])
         V_val.append(W_values[i - 1 + 2 * N])
+        PsiX_val.append(W_values[i - 1 + 3 * N])
+        PsiY_val.append(W_values[i - 1 + 4 * N])
 
-    for i in range(N + 1):
-        Q_function = Q_function.subs('w' + str(i), W_val[i - 1])
-        #Q_function = Q_function.subs(Xx,A_lenght_x/2)
-        #Q_function = Q_function.subs(Yy,B_lenght_y/ 2)
-    #Q_values.append(Q_function)
+    #for i in range(N + 1):
+        #Q_function = Q_function.subs('w' + str(i), W_val[i - 1])
 
+    #z = -h/2
+    #Max_Sigmas_values[0] = Get_Sigmas_max_values('Sigma_x', W_val, 1, Sigma_x_Function, Sigma_y_Function, Tay_xy_Function, z, W_val, U_val, V_val)
+    #Max_Sigmas_values[1] = Get_Sigmas_max_values('Sigma_Y', W_val, 2, Sigma_x_Function, Sigma_y_Function, Tay_xy_Function, z, W_val, U_val, V_val)
+    #Max_Sigmas_values[2] = Get_Sigmas_max_values('Tay_xy',  W_val, 3, Sigma_x_Function, Sigma_y_Function, Tay_xy_Function, z, W_val, U_val, V_val)
 
-    z = -h/2
-    Max_Sigmas_values[0] = Get_Sigmas_max_values('Sigma_x', W_val, 1, Sigma_x_Function, Sigma_y_Function, Tay_xy_Function, z, W_val, U_val, V_val)
-    Max_Sigmas_values[1] = Get_Sigmas_max_values('Sigma_Y', W_val, 2, Sigma_x_Function, Sigma_y_Function, Tay_xy_Function, z, W_val, U_val, V_val)
-    Max_Sigmas_values[2] = Get_Sigmas_max_values('Tay_xy',  W_val, 3, Sigma_x_Function, Sigma_y_Function, Tay_xy_Function, z, W_val, U_val, V_val)
+    #Sigma_max_global=0
 
-    Sigma_max_global=0
-
-    if Change == 1:
-        Sigma_max_global = abs(Get_Sigmas_max_values_Orto('Sigma_i', W_val, 1, U_function, V_function, W_Function, z, W_val, U_val, V_val))
-        print(Sigma_max_global)
-    else:
-        Sigma_max_global = ((Max_Sigmas_values[0]**2) + (Max_Sigmas_values[1]**2) - Max_Sigmas_values[0]*Max_Sigmas_values[1] + 3*(Max_Sigmas_values[2]**2))**(1/2)
+    #if Change == 1:
+        #Sigma_max_global = abs(Get_Sigmas_max_values_Orto('Sigma_i', W_val, 1, U_function, V_function, W_Function, z, W_val, U_val, V_val))
+        #print(Sigma_max_global)
+    #else:
+        #Sigma_max_global = ((Max_Sigmas_values[0]**2) + (Max_Sigmas_values[1]**2) - Max_Sigmas_values[0]*Max_Sigmas_values[1] + 3*(Max_Sigmas_values[2]**2))**(1/2)
 
 
-    W_middle_values.append(Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, W_Function, W_val,3))
-    W_middle_2_values.append(Get_W_Plane(A_lenght_x / 4, B_lenght_y / 4, W_Function, W_val,3))
-    Q_now += Q_max*25
+    #W_middle_values.append(Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, W_Function, W_val,3))
+    #W_middle_2_values.append(Get_W_Plane(A_lenght_x / 4, B_lenght_y / 4, W_Function, W_val,3))
+    #Q_now += Q_max*25
 
-    if Sigma_max_global > QQ and Only_Value_in_Break_point != 1:
-        Check = 0
-    if Only_Value_in_Break_point and Count_num == 1:
-        Check = 0
-        Q_now -= Q_max
+    #if Sigma_max_global > QQ and Only_Value_in_Break_point != 1:
+        #Check = 0
+    #if Only_Value_in_Break_point and Count_num == 1:
+        #Check = 0
+        #Q_now -= Q_max
+
+
+
+
 
 #Q_graph
 plt.plot(W_middle_2_values,Q_values)
