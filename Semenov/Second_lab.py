@@ -6,9 +6,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 #Выбор типа функции
-Choose =0
+Choose =1
 #DATA
-N=3
+N=1
 #graph points
 Size = 30
 Max_q_T = 2
@@ -294,7 +294,7 @@ Qq = Symbol('q')
 Ll = Symbol('l')
 y_1*=Ee*(Hh**3)/24
 q_1*=Qq
-y_nelin_1*=(-1)*(Ee*(Hh**5)*Mm/120)
+y_nelin_1 *= (-1)*(Ee*(Hh**5)*Mm/120)
 
 #Массив производных
 Es=y_1
@@ -361,7 +361,7 @@ else:
     plt.ylabel("q, МПа")
     plt.legend = True
     plt.title("График нагрузки-прогиб для Линейного и Нелинейного случая")
-    dw= Ne_Lin_Function_Loop(w_coefs,y_1,q_1,y_nelin_1,fig, axs)
+    dw = Ne_Lin_Function_Loop(w_coefs,y_1,q_1,y_nelin_1,fig, axs)
     dw = Lin_Function_Loop(w_coefs, y_1, q_1,fig, axs)
 
 
