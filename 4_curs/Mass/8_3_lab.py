@@ -167,7 +167,7 @@ print(" Relative throughput = ", relativeThroughput)
 absoluteThroughput = Lyambda * chanceOfService
 print(" Absolute throughput = ", absoluteThroughput)
 
-averageMaintenance = 0
+averageMaintenance = 0                                  #Среднее заявок под обслуживанием  Nоб
 for k in range(0,K):
     averageMaintenance += k * round(limit_expr[k],5)
 for k in range(K,size):
@@ -175,20 +175,20 @@ for k in range(K,size):
 
 print(" Average maintenance = ", averageMaintenance)
 
-averageQueue = 0
+averageQueue = 0                                        #Среднее заявок  в очереди Nоч
 for k in range(K+1,size):
     averageQueue += (k-K) * round(limit_expr[k],5)
 print(" Average queue = ", averageQueue)
 
-averageSystem = averageQueue + averageMaintenance
+averageSystem = averageQueue + averageMaintenance       #Среднее пасивов  Nсист
 print(" Average system = ", averageSystem)
 
-averageWait = 0
+averageWait = 0                                         #Среднее простоя Nпр
 for k in range(0,K):
     averageWait += (K-k) * round(limit_expr[k],5)
 print(" Average wait = ", averageWait)
 
-averageWaitQueue_Time = 0
+averageWaitQueue_Time = 0                               #Среднее время в очереди Tоч
 j = 1
 for k in range(K,size-1):
     print(j," and k=",k)
@@ -197,20 +197,20 @@ for k in range(K,size-1):
 
 print(" Average wait Queue Time = ", averageWaitQueue_Time) #&&
 
-averageServiceTime = relativeThroughput/Lyambda_2
+averageServiceTime = relativeThroughput/Lyambda_2       #Среднее время обслуживания Tоб
 print(" Average Service Time = ", averageServiceTime)
 
-averageSystemTime = averageServiceTime + averageWaitQueue_Time
+averageSystemTime = averageServiceTime + averageWaitQueue_Time  #Среднее время в системе Tсист
 print(" Average System Time = ", averageSystemTime)
 
 print("Formuls Littl:")
 
-T_Servise = averageQueue/Lyambda #&&
-print(" T_wait = ", T_Servise) #&&
+T_Maintenance = averageQueue/Lyambda #&&                        #Среднее время в очереди Tоч
+print(" T_wait = ", T_Maintenance) #&&
 
-T_Maintenance = averageMaintenance / Lyambda
-print(" T_Service Time = ", T_Maintenance)
-T_System = averageSystem/Lyambda
+T_Servise = averageMaintenance / Lyambda                #Среднее время обслуживания Tоб
+print(" T_Service Time = ", T_Servise)
+T_System = averageSystem/Lyambda                            #Среднее время в системе Tсист
 print(" T_System = ", T_System)
 
 

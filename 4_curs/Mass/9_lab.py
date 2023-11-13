@@ -89,10 +89,6 @@ for i in range(0, size):
         buf += C_symbols[j] * round(eigenvectors[i][j],2) * round(math.e,2)**(Tt * round(eigenvalues[j],1))
     print(buf)
 
-#for i in range(0, len(Static_eval)):
-    #print(Static_eval[i])
-#for i in range(0, len(Static_eval)):
-    #print(arrayFor_K_CH[i])
 
 Result = 0
 for solution in linsolve(Static_eval, C_symbols):
@@ -141,50 +137,47 @@ print(" Relative throughput = ", relativeThroughput)
 absoluteThroughput = Lyambda_2 * chanceBuzy
 print(" Absolute throughput = ", absoluteThroughput)
 
-averageMaintenance = 0
+averageMaintenance = 0                              #Среднее заявок под обслуживанием  Nоб
 for k in range(0,L):
     averageMaintenance += k * round(limit_expr[k],5)
 for k in range(L,size):
     averageMaintenance += L * round(limit_expr[k],5)
-
+print(" ")
 print(" Average maintenance = ", averageMaintenance)
 
-averageSystem = 0
+averageSystem = 0                                   #Среднее пасивов  Nсист
 for k in range(0,size):
     averageSystem += k * round(limit_expr[k],5)
-print(" Average queue = ", averageSystem)
+print(" Average system = ", averageSystem)
 
-averageQueue = averageSystem + averageMaintenance
-print(" Average system = ", averageQueue)
+averageQueue = averageSystem - averageMaintenance   #Среднее заявок  в очереди Nоч
+print(" Average queue = ", averageQueue)
 
-averageWait = 0
+averageWait = 0                                     #Среднее простоя Nпр
 for k in range(0,L):
     averageWait += (L-k) * round(limit_expr[k],5)
 print(" Average wait = ", averageWait)
 
-averageWaitQueue_Time = 0
-j = 1
-for k in range(K,size-1):
-    print(j," and k=",k)
-    averageWaitQueue_Time += (j/(K*Lyambda_2)) * round(limit_expr[k],5)
-    j+=1
+Delta = (K - averageSystem)* Lyambda  # Дельта
 
-print(" Average wait Queue Time = ", averageWaitQueue_Time) #&&
+averageWaitQueue_Time = (1/Delta) * averageQueue    #Среднее время в очереди Tоч
+print(" Average wait Queue Time = ", averageWaitQueue_Time)
 
-averageServiceTime = relativeThroughput/Lyambda_2
+averageServiceTime = (1 / Delta) * averageMaintenance                    #Среднее время обслуживания Tоб
 print(" Average Service Time = ", averageServiceTime)
 
-averageSystemTime = averageServiceTime + averageWaitQueue_Time
+averageSystemTime = averageServiceTime + averageWaitQueue_Time  #Среднее время в системе Tсист
 print(" Average System Time = ", averageSystemTime)
 
 print("Formuls Littl:")
 
-T_Servise = averageQueue/Lyambda #&&
-print(" T_wait = ", T_Servise) #&&
+T_Maintenance = (1 / Delta) * averageQueue #Среднее время в очереди Tоч
+print(" T_wait = ", T_Maintenance)
 
-T_Maintenance = averageMaintenance / Lyambda
-print(" T_Service Time = ", T_Maintenance)
-T_System = averageSystem/Lyambda
+T_Servise = (1 / Delta) * averageMaintenance   #Среднее время обслуживания Tоб
+print(" T_Service Time = ", T_Servise) #&&
+
+T_System = averageSystem/Delta               #Среднее время в системе Tсист
 print(" T_System = ", T_System)
 
 
@@ -222,34 +215,34 @@ averageWaitQueue = []
 averageSystemTime = []
 relativeThroughput = []
 averageServiceTime = []
+chanceBuzy = []
+absoluteThroughput = []
 for t in range (0,time):
-    chanceOfFail = round(variantsPerTime[t][len(limit_expr) - 1], 5)
-    chanceOfService = 1 - chanceOfFail
-    relativeThroughput.append(chanceOfService)
+    chanceOfFail = 0
+    chanceBuzy.append(1 - round(variantsPerTime[t][0],5))
+    relativeThroughput.append(1)
+    absoluteThroughput.append(Lyambda_2 * chanceBuzy[t])
 
     averageMaintenance.append(0)
-    for k in range(0,K):
+    for k in range(0,L):
         averageMaintenance[t] += k * round(variantsPerTime[t][k],5)
-    for k in range(K,size):
-        averageMaintenance[t] += K * round(variantsPerTime[t][k],5)
+    for k in range(L,size):
+        averageMaintenance[t] += L * round(variantsPerTime[t][k],5)
 
     averageSystem.append(0)
-    for k in range(K+1,size):
-        averageSystem[t] += (k-K) * round(variantsPerTime[t][k],5)
+    for k in range(0, size):
+        averageSystem[t] += k * round(variantsPerTime[t][k], 5)
 
-    averageQueue.append(averageSystem[t] + averageMaintenance[t])
+    averageQueue.append(averageSystem[t] - averageMaintenance[t])
 
+    Delta = (K - averageSystem[t]) * Lyambda  # Дельта
     averageWait.append(0)
-    for k in range(0,K):
-        averageWait[t] += (K-k) * round(variantsPerTime[t][k],5)
+    for k in range(0,L):
+        averageWait[t] += (L-k) * round(variantsPerTime[t][k],5)
 
-    averageWaitQueue.append(0)
-    j = 1
-    for k in range(K,size-1):
-        averageWaitQueue[t] += (j/(K*Lyambda_2)) * round(variantsPerTime[t][k],5)
-        j += 1
+    averageWaitQueue.append((1 / Delta) * averageQueue[t])
 
-    averageServiceTime.append(relativeThroughput[t]/Lyambda_2)
+    averageServiceTime.append((1 / Delta) * averageMaintenance[t])
     averageSystemTime.append(averageServiceTime[t] + averageWaitQueue[t])
 
 #print(" Strain = ",systemStrain)
