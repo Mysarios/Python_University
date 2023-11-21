@@ -5,6 +5,7 @@ import math as m
 import matplotlib.pyplot as plt
 from sympy import factor_terms
 
+
 # Data for programm
 A_Numeric = 1
 Change = 3
@@ -35,8 +36,8 @@ P3 = 1190
 Square = 20 * 20
 k = 5 / 6
 # Symbols
-Xx = Symbol('x')
-Yy = Symbol('y')
+Xx = Symbol('x',real = True, positive = True)
+Yy = Symbol('y',real = True, positive = True)
 # Static_DATA for variants:
 # Ort:
 E1 = 0
@@ -233,27 +234,27 @@ def Draw_3d_Sigmas_main(Function, Values_Result, Type_Sigmas, U_function, V_func
 def Get_v_coefs():
     w_coefs = []
     for i in range(1, N + 1):
-        w_coefs.append(Symbol('v' + str(i)))
+        w_coefs.append(Symbol('v' + str(i),real = True))
     return w_coefs
 def Get_u_coefs():
     w_coefs = []
     for i in range(1, N + 1):
-        w_coefs.append(Symbol('u' + str(i)))
+        w_coefs.append(Symbol('u' + str(i),real = True))
     return w_coefs
 def Get_w_coefs():
     w_coefs = []
     for i in range(1, N + 1):
-        w_coefs.append(Symbol('w' + str(i)))
+        w_coefs.append(Symbol('w' + str(i),real = True))
     return w_coefs
 def Get_PsiX_coefs():
     w_coefs = []
     for i in range(1, N + 1):
-        w_coefs.append(Symbol('PsiX' + str(i)))
+        w_coefs.append(Symbol('PsiX' + str(i),real = True))
     return w_coefs
 def Get_PsiY_coefs():
     w_coefs = []
     for i in range(1, N + 1):
-        w_coefs.append(Symbol('PsiY' + str(i)))
+        w_coefs.append(Symbol('PsiY' + str(i),real = True))
     return w_coefs
 def Get_w_sin_x(i):
     return sin((2 * i - 1) * Xx * m.pi / A_lenght_x)
@@ -502,6 +503,7 @@ def Get_New_iterarion(Function_E, Jackobi_inv, Last_step_X, a):
     #W = W * Jackobi_inv
     #print("Result = ", Result)
     return Result
+
 def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function, PsiX_function, PsiY_function,Sigma_x,Sigma_y,Sigma_tay):
     #symbols
     Ee = Symbol('E')
@@ -523,7 +525,13 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
 
     Es = Es_Get.copy()
     #print("while= ", Es[0])
-    #Es[0] = factor_terms(Es[0])
+    Es[0] = factor_terms(Es[0])
+    Es[1] = factor_terms(Es[1])
+    Es[2] = factor_terms(Es[2])
+    Es[3] = factor_terms(Es[3])
+    Es[4] = factor_terms(Es[4])
+    Es[5] = factor_terms(Es[5])
+    Es[6] = factor_terms(Es[6])
     #print("next = ", Es[0])
     print("Start Intagrate")
     Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
@@ -541,6 +549,14 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
     Es[6] = integrate(Es[6], (Xx, Start_integral, A_lenght_x))
     print("Start Intagrate 6")
     #Es[7] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
+    Es[0] = factor_terms(Es[0])
+    Es[1] = factor_terms(Es[1])
+    Es[2] = factor_terms(Es[2])
+    Es[3] = factor_terms(Es[3])
+    Es[4] = factor_terms(Es[4])
+    Es[5] = factor_terms(Es[5])
+    Es[6] = factor_terms(Es[6])
+
     Es[0] = (1/2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
     print("Start Intagrate 7")
     Es[1] = (1/2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
