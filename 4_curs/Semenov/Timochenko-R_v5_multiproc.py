@@ -158,8 +158,8 @@ def intagrete_Es_Simp(fun,queue,i):
     Result = integrate_y.evalf()
     #Result = factor_terms(Result)
     #Result = nsimplify(Result, tolerance=1e-15).evalf(15)
-    #Result = Result.simplify()
-    #Result = nsimplify(Result, tolerance=1e-22).evalf(22)
+    Result = Result.simplify()
+    Result = nsimplify(Result, tolerance=1e-22).evalf(22)
     queue.put(Result)
     spend_time = time.time() - timer
     #print("Result[",i," By time = ",spend_time,"=",Result,)
@@ -331,7 +331,6 @@ def Get_w_sin_x_2(i):
     return sin((2 * i) * Xx * m.pi / A_lenght_x)
 def Get_w_sin_y_2(j):
     return sin((2 * j) * Yy * m.pi / B_lenght_y)
-
 def Get_w_cos_x(i):
     return cos((2 * i - 1) * Xx * m.pi / A_lenght_x)
 def Get_w_cos_y(j):
@@ -594,13 +593,23 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
     timer = time.time()
     Es = Es_Get.copy()
 
-    p1 = multiprocessing.Process(target=intagrete_Es, args=(Es[0], queue, 0,))
-    p2 = multiprocessing.Process(target=intagrete_Es, args=(Es[1], queue, 1,))
-    p3 = multiprocessing.Process(target=intagrete_Es, args=(Es[2], queue, 2,))
-    p4 = multiprocessing.Process(target=intagrete_Es, args=(Es[3], queue, 3,))
-    p5 = multiprocessing.Process(target=intagrete_Es, args=(Es[4], queue, 4,))
-    p6 = multiprocessing.Process(target=intagrete_Es, args=(Es[5], queue, 5,))
-    p7 = multiprocessing.Process(target=intagrete_Es, args=(Es[6], queue, 6,))
+    Simp = 1
+    if Simp == 1:
+        p1 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[0], queue, 0,))
+        p2 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[1], queue, 1,))
+        p3 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[2], queue, 2,))
+        p4 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[3], queue, 3,))
+        p5 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[4], queue, 4,))
+        p6 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[5], queue, 5,))
+        p7 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[6], queue, 6,))
+    if Simp == 0:
+        p1 = multiprocessing.Process(target=intagrete_Es, args=(Es[0], queue, 0,))
+        p2 = multiprocessing.Process(target=intagrete_Es, args=(Es[1], queue, 1,))
+        p3 = multiprocessing.Process(target=intagrete_Es, args=(Es[2], queue, 2,))
+        p4 = multiprocessing.Process(target=intagrete_Es, args=(Es[3], queue, 3,))
+        p5 = multiprocessing.Process(target=intagrete_Es, args=(Es[4], queue, 4,))
+        p6 = multiprocessing.Process(target=intagrete_Es, args=(Es[5], queue, 5,))
+        p7 = multiprocessing.Process(target=intagrete_Es, args=(Es[6], queue, 6,))
 
     p1.start()
     p2.start()
@@ -664,7 +673,7 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
         buf = queue.get()
         #print("j =",j," =  ",buf)
         j+=1
-        Buf_Function += buf
+        Buf_Function += (1/2) * buf
     #print('End sim = Time %.6f' % (time.time() - timer))
 
     timer = time.time()
@@ -680,16 +689,16 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
     #while (Miz < 1):
     #for Q_now in range(1,3):
     check = 0
-    while (Q_now < 4.5):
+    while (Q_now < 10):
         if Q_now > 3 and check == 0:
-            Q_step = Q_step/2
+            #Q_step = Q_step/2
             check =1
         print("Q_now = ", Q_now)
         print("Start integrate 7")
-        Es[7] = (-1) * (Q_now * W_Function_get)
+        Es[7] = (-2) * (Q_now * W_Function_get)
         #print("Es-7 = ", Es[7])
         Es[7] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
-        Es[7] = integrate(Es[7], (Yy, Start_integral, B_lenght_y))
+        Es[7] = (1/2) * integrate(Es[7], (Yy, Start_integral, B_lenght_y))
         print("End 7 ")
 
         New_Buf_Function = Buf_Function + Es[7]
@@ -729,18 +738,18 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
         Miz = Draw_3d_Sigmas_main('Sigma_i', W_val, 1, U_function, V_function, W_Function, PsiX_function, PsiY_function,
                                   z,W_val, U_val, V_val, PsiX_val, PsiY_val,Sigma_x,Sigma_y,Sigma_tay)
 
-        #New_w = Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, 0, W_val, 3)
-        #Last_w = w_for_graph[len(w_for_graph)-1]
+        New_w = Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, 0, W_val, 3)
+        Last_w = w_for_graph[len(w_for_graph)-1]
         Q_now += Q_step
         j += 1
         print("Miz = ", Miz)
 
-        #if New_w > Last_w:
-        w_for_graph.append(Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, 0, W_val, 3))
-        q_for_graph.append(Q_now - Q_step)
-        #else:
-            #print("trouble")
-            #continue
+        if New_w > Last_w:
+            w_for_graph.append(Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, 0, W_val, 3))
+            q_for_graph.append(Q_now - Q_step)
+        else:
+            print("trouble")
+            continue
 
 
 
@@ -828,14 +837,14 @@ if __name__ == '__main__':
     print(PsiX_vals)
     print(PsiY_vals)
 
-    W_Function = Get_W_function_vals(w_vals)
+    W_function = Get_W_function_vals(w_vals)
     U_function = Get_U_function_vals(u_vals)
     V_function = Get_V_function_vals(v_vals)
     PsiX_function = Get_PsiX_function_vals(PsiX_vals)
     PsiY_function = Get_PsiY_function_vals(PsiY_vals)
 
     print("Func")
-    print(W_Function)
+    print(W_function)
     print(U_function)
     print(V_function)
     print(PsiX_function)
@@ -862,7 +871,7 @@ if __name__ == '__main__':
     # Sigmas
     U_function_buf = U_function.copy()
     V_function_buf = V_function.copy()
-    W_function_buf = W_Function.copy()
+    W_function_buf = W_function.copy()
     PsiX_function_buf = PsiX_function.copy()
     PsiY_function_buf = PsiY_function.copy()
 
@@ -879,11 +888,11 @@ if __name__ == '__main__':
     KSI_1 = ksi_1(PsiX_function,PsiY_function)
     KSI_2 = ksi_2(PsiX_function,PsiY_function)
     KSI_12 = ksi_12(PsiX_function,PsiY_function)
-    TETTA_1 = Tetta_1(W_Function,U_function)
-    TETTA_2 = Tetta_2(W_Function,V_function)
-    F_EX = e_x(U_function,V_function,W_Function,TETTA_1)
-    F_EY = e_y(U_function,V_function,W_Function,TETTA_2)
-    F_XY = y_xy(U_function,V_function,W_Function,TETTA_1, TETTA_2)
+    TETTA_1 = Tetta_1(W_function,U_function)
+    TETTA_2 = Tetta_2(W_function,V_function)
+    F_EX = e_x(U_function,V_function,W_function,TETTA_1)
+    F_EY = e_y(U_function,V_function,W_function,TETTA_2)
+    F_XY = y_xy(U_function,V_function,W_function,TETTA_1, TETTA_2)
 
 
     if Change == 1:
@@ -901,14 +910,14 @@ if __name__ == '__main__':
     integral_type = 1
     if integral_type ==1:
         if Change == 1:
-            Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1, nu_12, nu_21) * e_x(U_function, V_function, W_Function)
-            Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E1, nu_12, nu_21) * e_y(U_function, V_function, W_Function)
-            Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_Function, G12) * y_xy(U_function, V_function,W_Function)
-            Es_main[3] = M_x_Orto(W_Function, E1, nu_12, nu_21) * ksi_1(PsiX_function,PsiY_function) \
-                         + M_y_Orto(W_Function,E2,nu_12,nu_21) * ksi_2(PsiX_function, PsiY_function)
-            Es_main[4] = 2 * M_xy_Orto(W_Function, G12) * ksi_12(PsiX_function, PsiY_function)
-            Es_main[5] = Q_x(PsiX_function, PsiY_function, G13, W_Function, U_function)
-            Es_main[6] = Q_y(PsiX_function, PsiY_function, G23, W_Function, U_function)
+            Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_function, E1, nu_12, nu_21) * e_x(U_function, V_function, W_function)
+            Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_function, E1, nu_12, nu_21) * e_y(U_function, V_function, W_function)
+            Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_function, G12) * y_xy(U_function, V_function,W_function)
+            Es_main[3] = M_x_Orto(W_function, E1, nu_12, nu_21) * ksi_1(PsiX_function,PsiY_function) \
+                         + M_y_Orto(W_function,E2,nu_12,nu_21) * ksi_2(PsiX_function, PsiY_function)
+            Es_main[4] = 2 * M_xy_Orto(W_function, G12) * ksi_12(PsiX_function, PsiY_function)
+            Es_main[5] = Q_x(PsiX_function, PsiY_function, G13, W_function, U_function)
+            Es_main[6] = Q_y(PsiX_function, PsiY_function, G23, W_function, U_function)
         if Change == 2 or Change == 3:
             NX_I = N_x_Izo(E1, nu_12,F_EX,F_EY)
             NY_I = N_y_Izo(E1, nu_12,F_EX,F_EY)
@@ -925,11 +934,11 @@ if __name__ == '__main__':
             print("Es_main[0] = ",Es_main[0])
             Es_main[1] = NY_I * F_EY
             print("Es_main[1] = ", Es_main[1])
-            Es_main[2] = NXY_I * F_XY
+            Es_main[2] = (1/2) * (NXY_I + NXY_I)*F_XY
             print("Es_main[2] = ", Es_main[2])
             Es_main[3] = MX_I * KSI_1 + MY_I * KSI_2
             print("Es_main[3] = ", Es_main[3])
-            Es_main[4] = 2 * MXY_I * KSI_12
+            Es_main[4] = (MXY_I + MXY_I) * KSI_12
             print("Es_main[4] = ", Es_main[4])
             Es_main[5] = Q_X * (PsiX_function - TETTA_1)
             print("Es_main[5] = ", Es_main[5])
@@ -951,7 +960,7 @@ if __name__ == '__main__':
         Q_function = q_function(Q_now, 0)
 
         print("Start Nelin")
-        W_values = Ne_Lin_Function_Loop([0]*N*5, Es_main_buf,W_Function,U_function, V_function, W_Function, PsiX_function, PsiY_function
+        W_values = Ne_Lin_Function_Loop([0]*N*5, Es_main_buf,W_function,U_function, V_function, W_function, PsiX_function, PsiY_function
                                         ,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function)
         Check = 0
 
