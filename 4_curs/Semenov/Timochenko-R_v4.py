@@ -11,8 +11,8 @@ A_Numeric = 1
 Change = 3
 # Data for algorithm
 eps = 0.0000005
-N_x = 2
-N_y = 2
+N_x = 1
+N_y = 1
 N = N_x * N_y
 # graph points
 Size = 10

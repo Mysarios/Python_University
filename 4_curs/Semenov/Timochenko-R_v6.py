@@ -4,6 +4,9 @@ import numpy as np
 import math as m
 import matplotlib.pyplot as plt
 from sympy import factor_terms
+import time
+import multiprocessing
+
 
 # Data for programm
 A_Numeric = 1
@@ -96,6 +99,21 @@ if Change == 3:
 
 # Settings to integral
 Start_integral = 0
+def intagrete_Es(fun,queue,i):
+    timer = time.time()
+    print("Start Intagrate = ",i)
+    Result = fun
+    Result = factor_terms(Result)
+    Result = nsimplify(Result, tolerance=1e-15).evalf(15)
+    Result = integrate(Result, (Xx, Start_integral, A_lenght_x))
+    Result = factor_terms(Result)
+    Result = nsimplify(Result, tolerance=1e-15).evalf(15)
+    Result = (1 / 2) * integrate(Result, (Yy, Start_integral, B_lenght_y))
+    Result = nsimplify(Result, tolerance=1e-15).evalf(15)
+    queue.put(Result)
+    spend_time = time.time() - timer
+    print("Result[",i," By time = ",spend_time,"=",Result,)
+    return
 
 def Get_W_Plane(x_val, y_val, function, Values, type):
     W_result = 0
@@ -407,8 +425,14 @@ def Get_Sigma_tay_Orto(U_function, V_function, W_Function, G_12, z_val, PsiX_fun
 def N_x_Izo(E, nu,ex,ey):
     result = (E / (1 - nu * nu)) * h * (ex + nu * ey);
     return result
+def N_x_Izo_1(E, nu,ex,ey):
+    result = (E / (1 - nu * nu)) * h
+    return result
 def N_y_Izo(E, nu,ex,ey):
     Result = (E / (1 - nu * nu)) * h * (ey + nu * ex);
+    return Result
+def N_y_Izo_1(E, nu,ex,ey):
+    Result = (E / (1 - nu * nu)) * h
     return Result
 def N_xy_Izo(G, nu,yxy):
     Result = G * h * yxy
@@ -449,7 +473,7 @@ def q_function(q_0, q_sv):
 
     return Result
 def Get_Jacobian(Function_E, Result_w):
-    print("Jacodi start)")
+    #print("Jacodi start)")
     Jacobian = [0] * N * 5
     Def_Function = [0] * N * 5
     Symbol_Function = [0] * N * 5
@@ -461,11 +485,11 @@ def Get_Jacobian(Function_E, Result_w):
         Symbol_Function[i + N_x * 2] = 'v' + str(i + 1)
         Symbol_Function[i + N_x * 3] = 'PsiX' + str(i + 1)
         Symbol_Function[i + N_x * 4] = 'PsiY' + str(i + 1)
-
+    #print(Symbol_Function)
     for i in range(0, N * 5):
         Jacobian[i] = [0] * N * 5
         Def_Function[i] = Function_E.diff(Symbol_Function[i])
-        # print("D[",i,"] =",Def_Function[i])
+        #print("D[",i,"] =",Def_Function[i])
 
     for row in range(0, N * 5):
         for column in range(0, N * 5):
@@ -473,7 +497,7 @@ def Get_Jacobian(Function_E, Result_w):
             #print("J[", row, "][",column,"] =", Jacobian[row][column])
             for W_coefs in range(0, N * 5):
                 Jacobian[row][column] = Jacobian[row][column].subs((Symbol_Function[W_coefs]), (Result_w[W_coefs]))
-    print("Result J =", Jacobian)
+    #print("Result J =", Jacobian)
     return Jacobian
 def Get_New_iterarion(Function_E, Jackobi_inv, Last_step_X, a):
     Def_Function = [0] * N * 5
@@ -521,47 +545,47 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
     W_Result = [0] * (1000)
     W_Result[0] = [1] * N*5
 
-
+    queue = multiprocessing.Queue()
+    timer = time.time()
     Es = Es_Get.copy()
-    #print("while= ", Es[0])
-    #Es[0] = factor_terms(Es[0])
-    #print("next = ", Es[0])
-    print("Start Intagrate")
-    Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 0")
-    Es[1] = integrate(Es[1], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 1")
-    Es[2] = integrate(Es[2], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 2")
-    Es[3] = integrate(Es[3], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 3")
-    Es[4] = integrate(Es[4], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 4")
-    Es[5] = integrate(Es[5], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 5")
-    Es[6] = integrate(Es[6], (Xx, Start_integral, A_lenght_x))
-    print("Start Intagrate 6")
-    #Es[7] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
-    Es[0] = (1/2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 7")
-    Es[1] = (1/2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 8")
-    Es[2] = (1/2) * integrate(Es[2], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 9")
-    Es[3] = (1/2) * integrate(Es[3], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 10")
-    Es[4] = (1/2) * integrate(Es[4], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 11")
-    Es[5] = (1/2) * integrate(Es[5], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 12")
-    Es[6] = (1/2) * integrate(Es[6], (Yy, Start_integral, B_lenght_y))
-    print("Start Intagrate 13")
-    #Es[7] = (1 / 2) * integrate(Es[7], (Yy, Start_integral, B_lenght_y))
 
-    print("End Intagrate")
-    Buf_Function = Es[0] + Es[1] + Es[2] + Es[3] + Es[4] + Es[5] + Es[6]
-    print(Buf_Function)
-    Buf_Function =  Buf_Function.subs([(Ee, E), (Hh, h), (pi, m.pi)])
+    p1 = multiprocessing.Process(target=intagrete_Es, args=(Es[0],queue,0,))
+    p2 = multiprocessing.Process(target=intagrete_Es, args=(Es[1],queue,1,))
+    p3 = multiprocessing.Process(target=intagrete_Es, args=(Es[2], queue, 2,))
+    p4 = multiprocessing.Process(target=intagrete_Es, args=(Es[3], queue, 3,))
+    p5 = multiprocessing.Process(target=intagrete_Es, args=(Es[4], queue, 4,))
+    p6 = multiprocessing.Process(target=intagrete_Es, args=(Es[5], queue, 5,))
+    p7 = multiprocessing.Process(target=intagrete_Es, args=(Es[6], queue, 6,))
+    p8 = multiprocessing.Process(target=intagrete_Es, args=(Es[7], queue, 7,))
+    p9 = multiprocessing.Process(target=intagrete_Es, args=(Es[8], queue, 8,))
+    p1.start()
+    p2.start()
+    p3.start()
+    p4.start()
+    p5.start()
+    p6.start()
+    p7.start()
+    p8.start()
+    p9.start()
+
+    p1.join()
+    p2.join()
+    p3.join()
+    p4.join()
+    p5.join()
+    p6.join()
+    p7.join()
+    p8.join()
+    p9.join()
+
+    Buf_Function = 0
+    print('Time %.6f' % (time.time() - timer))
+    while queue.qsize() > 0:
+        buf = queue.get()
+        print(buf)
+        Buf_Function += buf
+    #Buf_Function = Es[0] + Es[1] + Es[2] + Es[3] + Es[4] + Es[5] + Es[6]
+    print("Buf f = ",Buf_Function)
     print("End subs")
 
     j = 1
@@ -575,12 +599,12 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
             check =1
         print("Q_now = ", Q_now)
 
-        Es[7] = (-1) * (Q_now * W_Function_get)
+        Es[9] = (-1) * (Q_now * W_Function_get)
         #print("Es-7 = ", Es[7])
-        Es[7] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
-        Es[7] = integrate(Es[7], (Yy, Start_integral, B_lenght_y))
+        Es[9] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
+        Es[9] = integrate(Es[7], (Yy, Start_integral, B_lenght_y))
 
-        New_Buf_Function = Buf_Function + Es[7]
+        New_Buf_Function = Buf_Function + Es[9]
         W_Result[j] = Nuton_Iter(New_Buf_Function, eps, W_Result[j-1], w_coefs)
 
         W_val = [] * N
@@ -645,7 +669,7 @@ def Nuton_Iter(Function_E, eps, w0, w_coefs):
     while (Now_eps > eps):
         Count_Iterions += 1
         Max_eps = 0
-        #print("F_e", Function_E)
+        #print("F_e",Function_E)
         Jacobi = Get_Jacobian(Function_E, Res_now)
         #print("J_e", Jacobi)
         Jackobi_Matrix = sym.Matrix(Jacobi)
@@ -686,161 +710,169 @@ def Nuton_Iter(Function_E, eps, w0, w_coefs):
 
     return Res_now
 
+if __name__ == '__main__':
+    a = 1
+    # Main code
 
-# Main code
+    # Collect W-V func
+    w_vals = Get_w_coefs()
+    u_vals = Get_u_coefs()
+    v_vals = Get_v_coefs()
+    PsiX_vals = Get_PsiX_coefs()
+    PsiY_vals = Get_PsiY_coefs()
 
-# Collect W-V func
-w_vals = Get_w_coefs()
-u_vals = Get_u_coefs()
-v_vals = Get_v_coefs()
-PsiX_vals = Get_PsiX_coefs()
-PsiY_vals = Get_PsiY_coefs()
+    print("Vals")
+    print(w_vals)
+    print(u_vals)
+    print(v_vals)
+    print(PsiX_vals)
+    print(PsiY_vals)
 
-print("Vals")
-print(w_vals)
-print(u_vals)
-print(v_vals)
-print(PsiX_vals)
-print(PsiY_vals)
+    W_Function = Get_W_function_vals(w_vals)
+    U_function = Get_U_function_vals(u_vals)
+    V_function = Get_V_function_vals(v_vals)
+    PsiX_function = Get_PsiX_function_vals(PsiX_vals)
+    PsiY_function = Get_PsiY_function_vals(PsiY_vals)
 
-W_Function = Get_W_function_vals(w_vals)
-U_function = Get_U_function_vals(u_vals)
-V_function = Get_V_function_vals(v_vals)
-PsiX_function = Get_PsiX_function_vals(PsiX_vals)
-PsiY_function = Get_PsiY_function_vals(PsiY_vals)
+    print("Func")
+    print(W_Function)
+    print(U_function)
+    print(V_function)
+    print(PsiX_function)
+    print(PsiY_function)
 
-print("Func")
-print(W_Function)
-print(U_function)
-print(V_function)
-print(PsiX_function)
-print(PsiY_function)
+    # Заготовочка array's
+    Max_W_values = [0] * 3
+    Max_Sigmas_values = [0] * 3
+    Es_main = [0] * 10
+    W_middle_values = []
+    W_middle_2_values = []
+    Q_values = []
 
-# Заготовочка array's
-Max_W_values = [0] * 3
-Max_Sigmas_values = [0] * 3
-Es_main = [0] * 8
-W_middle_values = []
-W_middle_2_values = []
-Q_values = []
+    # Заготовочка for results
+    Sigma_x_Function = 5 * Xx
+    Sigma_y_Function = 5 * Xx
+    Tay_xy_Function = 5 * Xx
+    Q_function = 5 * Xx
 
-# Заготовочка for results
-Sigma_x_Function = 5 * Xx
-Sigma_y_Function = 5 * Xx
-Tay_xy_Function = 5 * Xx
-Q_function = 5 * Xx
+    # Sigma max
+    QQ = 0
+    Check = 1
 
-# Sigma max
-QQ = 0
-Check = 1
+    # Sigmas
+    U_function_buf = U_function.copy()
+    V_function_buf = V_function.copy()
+    W_function_buf = W_Function.copy()
+    PsiX_function_buf = PsiX_function.copy()
+    PsiY_function_buf = PsiY_function.copy()
 
-# Sigmas
-U_function_buf = U_function.copy()
-V_function_buf = V_function.copy()
-W_function_buf = W_Function.copy()
-PsiX_function_buf = PsiX_function.copy()
-PsiY_function_buf = PsiY_function.copy()
+    z_val = -h / 2
+    QQ = Sigma_t
+    # NOW
+    QQ = 0
+    Count_num = 0
+    Q_now = 0
 
-z_val = -h / 2
-QQ = Sigma_t
-# NOW
-QQ = 0
-Count_num = 0
-Q_now = 0
+    # Es main
 
-# Es main
-
-z_num = 0
-KSI_1 = ksi_1(PsiX_function,PsiY_function)
-KSI_2 = ksi_2(PsiX_function,PsiY_function)
-KSI_12 = ksi_12(PsiX_function,PsiY_function)
-TETTA_1 = Tetta_1(W_Function,U_function)
-TETTA_2 = Tetta_2(W_Function,U_function)
-F_EX = e_x(U_function,V_function,W_Function,TETTA_1)
-F_EY = e_y(U_function,V_function,W_Function,TETTA_2)
-F_XY = y_xy(U_function,V_function,W_Function,TETTA_1, TETTA_2)
+    z_num = 0
+    KSI_1 = ksi_1(PsiX_function,PsiY_function)
+    KSI_2 = ksi_2(PsiX_function,PsiY_function)
+    KSI_12 = ksi_12(PsiX_function,PsiY_function)
+    TETTA_1 = Tetta_1(W_Function,U_function)
+    TETTA_2 = Tetta_2(W_Function,U_function)
+    F_EX = e_x(U_function,V_function,W_Function,TETTA_1)
+    F_EY = e_y(U_function,V_function,W_Function,TETTA_2)
+    F_XY = y_xy(U_function,V_function,W_Function,TETTA_1, TETTA_2)
 
 
-if Change == 1:
-    Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1, nu_12, nu_21,z_val, PsiX_function_buf, PsiY_function_buf)
-    Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2, nu_12, nu_21, z_val, PsiX_function_buf, PsiY_function_buf)
-    Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G12, z_val, PsiX_function_buf, PsiY_function_buf)
-if Change == 2 or Change == 3:
-    Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12, z_val, F_EX, F_EY, KSI_1, KSI_2)
-    Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12, z_val, F_EX, F_EY, KSI_1, KSI_2)
-    Tay_xy_Function = Get_Sigma_tay_Izo(G12, nu_12, z_val, F_XY, KSI_12)
-
-print("Sigma_x_Function = ", Sigma_x_Function)
-print("Sigma_y_Function = ", Sigma_y_Function)
-print("Tay_xy_Function = ", Tay_xy_Function)
-integral_type = 1
-if integral_type ==1:
     if Change == 1:
-        Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1, nu_12, nu_21) * e_x(U_function, V_function, W_Function)
-        Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E1, nu_12, nu_21) * e_y(U_function, V_function, W_Function)
-        Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_Function, G12) * y_xy(U_function, V_function,W_Function)
-        Es_main[3] = M_x_Orto(W_Function, E1, nu_12, nu_21) * ksi_1(PsiX_function,PsiY_function) \
-                     + M_y_Orto(W_Function,E2,nu_12,nu_21) * ksi_2(PsiX_function, PsiY_function)
-        Es_main[4] = 2 * M_xy_Orto(W_Function, G12) * ksi_12(PsiX_function, PsiY_function)
-        Es_main[5] = Q_x(PsiX_function, PsiY_function, G13, W_Function, U_function)
-        Es_main[6] = Q_y(PsiX_function, PsiY_function, G23, W_Function, U_function)
+        Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1, nu_12, nu_21,z_val, PsiX_function_buf, PsiY_function_buf)
+        Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2, nu_12, nu_21, z_val, PsiX_function_buf, PsiY_function_buf)
+        Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G12, z_val, PsiX_function_buf, PsiY_function_buf)
     if Change == 2 or Change == 3:
-        NX_I = N_x_Izo(E1, nu_12,F_EX,F_EY)
-        NY_I = N_y_Izo(E1, nu_12,F_EX,F_EY)
-        NXY_I = N_xy_Izo(G12, nu_12,F_XY)
+        Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12, z_val, F_EX, F_EY, KSI_1, KSI_2)
+        Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12, z_val, F_EX, F_EY, KSI_1, KSI_2)
+        Tay_xy_Function = Get_Sigma_tay_Izo(G12, nu_12, z_val, F_XY, KSI_12)
 
-        MX_I = M_x_Izo(E1, nu_12,KSI_1,KSI_2)
-        MY_I = M_y_Izo(E1,nu_12,KSI_1,KSI_2)
-        MXY_I = M_xy_Izo(G12, nu_12,KSI_12)
+    print("Sigma_x_Function = ", Sigma_x_Function)
+    print("Sigma_y_Function = ", Sigma_y_Function)
+    print("Tay_xy_Function = ", Tay_xy_Function)
+    integral_type = 1
+    if integral_type ==1:
+        if Change == 1:
+            Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_Function, E1, nu_12, nu_21) * e_x(U_function, V_function, W_Function)
+            Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_Function, E1, nu_12, nu_21) * e_y(U_function, V_function, W_Function)
+            Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_Function, G12) * y_xy(U_function, V_function,W_Function)
+            Es_main[3] = M_x_Orto(W_Function, E1, nu_12, nu_21) * ksi_1(PsiX_function,PsiY_function) \
+                         + M_y_Orto(W_Function,E2,nu_12,nu_21) * ksi_2(PsiX_function, PsiY_function)
+            Es_main[4] = 2 * M_xy_Orto(W_Function, G12) * ksi_12(PsiX_function, PsiY_function)
+            Es_main[5] = Q_x(PsiX_function, PsiY_function, G13, W_Function, U_function)
+            Es_main[6] = Q_y(PsiX_function, PsiY_function, G23, W_Function, U_function)
+        if Change == 2 or Change == 3:
+            NX_I_1 = N_x_Izo(E1, nu_12,F_EX,F_EY)*F_EX
+            NX_I_2 = N_x_Izo(E1, nu_12, F_EX, F_EY)*F_EY*nu_12
+            NY_I_1 = N_y_Izo(E1, nu_12,F_EX,F_EY)*F_EY
+            NY_I_2 = N_y_Izo(E1, nu_12, F_EX, F_EY)*F_EX*nu_12
 
-        Q_X = Q_x(PsiX_function,G13, TETTA_1)
-        Q_y = Q_y(PsiY_function, G23, TETTA_2)
+            NXY_I = N_xy_Izo(G12, nu_12,F_XY)
 
-        Es_main[0] = NX_I * F_EX
-        print("Es_main[0] = ",Es_main[0])
-        Es_main[1] = NY_I * F_EY
-        print("Es_main[1] = ", Es_main[1])
-        Es_main[2] = NXY_I * F_XY
-        print("Es_main[2] = ", Es_main[2])
-        Es_main[3] = MX_I * KSI_1 + MY_I * KSI_2
-        print("Es_main[3] = ", Es_main[3])
-        Es_main[4] = 2 * MXY_I * KSI_12
-        print("Es_main[4] = ", Es_main[4])
-        Es_main[5] = Q_X * (PsiX_function - TETTA_1)
-        print("Es_main[5] = ", Es_main[5])
-        Es_main[6] = Q_y * (PsiY_function - TETTA_2)
-        print("Es_main[6] = ", Es_main[6])
-        print("New_main")
+            MX_I = M_x_Izo(E1, nu_12,KSI_1,KSI_2)
+            MY_I = M_y_Izo(E1,nu_12,KSI_1,KSI_2)
+            MXY_I = M_xy_Izo(G12, nu_12,KSI_12)
 
-while Check:
-    Q_values.append(Q_now)
-    Count_num += 1
-    W_val = []
-    U_val = []
-    V_val = []
-    PsiX_val = []
-    PsiY_val = []
-    W_values = []
+            Q_X = Q_x(PsiX_function,G13, TETTA_1)
+            Q_y = Q_y(PsiY_function, G23, TETTA_2)
 
-    Es_main_buf = Es_main.copy()
-    Q_function = q_function(Q_now, 0)
+            Es_main[0] = NX_I_1 * F_EX
+            print("Es_main[0] = ",Es_main[0])
+            Es_main[1] = NY_I_1 * F_EY
+            print("Es_main[1] = ", Es_main[1])
+            Es_main[2] = NXY_I * F_XY
+            print("Es_main[2] = ", Es_main[2])
+            Es_main[3] = MX_I * KSI_1 + MY_I * KSI_2
+            print("Es_main[3] = ", Es_main[3])
+            Es_main[4] = 2 * MXY_I * KSI_12
+            print("Es_main[4] = ", Es_main[4])
+            Es_main[5] = Q_X * (PsiX_function - TETTA_1)
+            print("Es_main[5] = ", Es_main[5])
+            Es_main[6] = Q_y * (PsiY_function - TETTA_2)
+            print("Es_main[6] = ", Es_main[6])
+            Es_main[7] = NX_I_2 * F_EX
+            print("Es_main[7] = ", Es_main[7])
+            Es_main[8] = NY_I_2 * F_EY
+            print("Es_main[8] = ", Es_main[8])
+            print("New_main")
 
-    print("Start Nelin")
-    W_values = Ne_Lin_Function_Loop([0]*N*5, Es_main_buf,W_Function,U_function, V_function, W_Function, PsiX_function, PsiY_function
-                                    ,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function)
-    Check = 0
+    while Check:
+        Q_values.append(Q_now)
+        Count_num += 1
+        W_val = []
+        U_val = []
+        V_val = []
+        PsiX_val = []
+        PsiY_val = []
+        W_values = []
 
-    for i in range(1, N + 1):
-        W_val.append(W_values[i - 1])
-        U_val.append(W_values[i - 1 + N])
-        V_val.append(W_values[i - 1 + 2 * N])
-        PsiX_val.append(W_values[i - 1 + 3 * N])
-        PsiY_val.append(W_values[i - 1 + 4 * N])
+        Es_main_buf = Es_main.copy()
+        Q_function = q_function(Q_now, 0)
+
+        print("Start Nelin")
+        W_values = Ne_Lin_Function_Loop([0]*N*5, Es_main_buf,W_Function,U_function, V_function, W_Function, PsiX_function, PsiY_function
+                                        ,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function)
+        Check = 0
+
+        for i in range(1, N + 1):
+            W_val.append(W_values[i - 1])
+            U_val.append(W_values[i - 1 + N])
+            V_val.append(W_values[i - 1 + 2 * N])
+            PsiX_val.append(W_values[i - 1 + 3 * N])
+            PsiY_val.append(W_values[i - 1 + 4 * N])
 
 
-    # Prints data :
-    #print("W values = ", W_val)
-    #print("U values = ", U_val)
-    #print("V values = ", V_val)
-    #print("Psi X values = ", V_val)
-    #print("Psi Y values = ", V_val)
+        # Prints data :
+        #print("W values = ", W_val)
+        #print("U values = ", U_val)
+        #print("V values = ", V_val)
+        #print("Psi X values = ", V_val)
+        #print("Psi Y values = ", V_val)
