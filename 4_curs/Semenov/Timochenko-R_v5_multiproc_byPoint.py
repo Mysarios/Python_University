@@ -13,9 +13,10 @@ A_Numeric = 1
 Change = 3
 # Data for algorithm
 eps = 0.0005
-N_x = 1
-N_y = 1
+N_x = 2
+N_y = 2
 N = N_x * N_y
+q_find = 3.14
 # graph points
 Size = 10
 # Data about object main
@@ -139,7 +140,7 @@ def intagrete_Es_Simp(fun,queue,i):
     Buf_function = integrate_x.evalf()
 
     #Buf_function =
-    #Result = integrate_x
+    Result = integrate_x
     #Result = nsimplify(integrate_x, tolerance=1e-15).evalf(15)
     Buf_function = factor_terms(Buf_function)
     integrate_y = 0
@@ -159,7 +160,7 @@ def intagrete_Es_Simp(fun,queue,i):
     #Result = factor_terms(Result)
     #Result = nsimplify(Result, tolerance=1e-15).evalf(15)
     Result = Result.simplify()
-    Result = nsimplify(Result, tolerance=1e-22).evalf(22)
+    #Result = nsimplify(Result, tolerance=1e-22).evalf(22)
     queue.put(Result)
     spend_time = time.time() - timer
     #print("Result[",i," By time = ",spend_time,"=",Result,)
@@ -515,153 +516,6 @@ def q_function(q_0, q_sv):
     Result = q_0 * (A_1[0] + A_1[1] * Xx + A_1[2] * (Xx ** 2)) * (A_2[0] + A_2[1] * Yy + A_2[2] * (Yy ** 2))
 
     return Result
-#Rits
-def Get_Answer_Rits(Es_Get,w_coef,u_coef,v_coef):
-    Es = Es_Get.copy()
-
-    Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
-    Es[1] = integrate(Es[1], (Xx, Start_integral, A_lenght_x))
-    Es[2] = integrate(Es[2], (Xx, Start_integral, A_lenght_x))
-    Es[3] = integrate(Es[3], (Xx, Start_integral, A_lenght_x))
-    Es[4] = integrate(Es[4], (Xx, Start_integral, A_lenght_x))
-    Es[5] = integrate(Es[5], (Xx, Start_integral, A_lenght_x))
-
-    Es[0] = (1/2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
-    Es[1] = (1/2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
-    Es[2] = (1/2) * integrate(Es[2], (Yy, Start_integral, B_lenght_y))
-    Es[3] = (1/2) * integrate(Es[3], (Yy, Start_integral, B_lenght_y))
-    Es[4] = (1/2) * integrate(Es[4], (Yy, Start_integral, B_lenght_y))
-    Es[5] = (1/2) * integrate(Es[5], (Yy, Start_integral, B_lenght_y))
-
-    Result = []
-    Result_buf = []
-    Buf = []
-    Zeroes = [0] * N * 3
-    Buf_Symbols = []
-
-    for index in range(1, 4):
-        Result.append(Result_buf)
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(w_coef[i - 1]) + Es[1].diff(w_coef[i - 1]) + Es[2].diff(w_coef[i - 1]) + Es[3].diff(
-            w_coef[i - 1]) + Es[4].diff(w_coef[i - 1]) + Es[5].diff(w_coef[i - 1])))
-        Buf_Symbols.append(w_coef[i - 1])
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(u_coef[i - 1]) + Es[1].diff(u_coef[i - 1]) + Es[2].diff(u_coef[i - 1]) + Es[3].diff(
-            w_coef[i - 1]) + Es[4].diff(u_coef[i - 1]) + Es[5].diff(u_coef[i - 1])))
-        Buf_Symbols.append(u_coef[i - 1])
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(v_coef[i - 1]) + Es[1].diff(v_coef[i - 1]) + Es[2].diff(v_coef[i - 1]) + Es[3].diff(
-            v_coef[i - 1]) + Es[4].diff(v_coef[i - 1]) + Es[5].diff(v_coef[i - 1])))
-        Buf_Symbols.append(v_coef[i - 1])
-
-    for i in range(len(Buf)):
-        Buf[i] = nsimplify(Buf[i], tolerance=1e-20).evalf(15)
-
-    for solution in linsolve(Buf, Buf_Symbols):
-        Result = solution
-
-    return Result
-#Bub-Gal
-def get_L1(Nx,Ny,Nxy,Qx,Tetta_1,Tetta_2):
-    if (A_Numeric):
-        Result = Nx.diff(Xx) + Nxy.diff(Yy) + K_x*Qx +K_x * (Nx*Tetta_1 + Nxy * Tetta_2)
-    else:
-        Result = 0
-    return Result
-def get_L2(Nx,Ny,Nxy,Qy,Tetta_1,Tetta_2):
-    if (A_Numeric):
-        Result = Ny.diff(Yy) + Nxy.diff(Xx) + K_y*Qy +K_y * (Ny*Tetta_2 + Nxy * Tetta_1)
-    else:
-        Result = 0
-    return Result
-def get_L3(Nx,Ny,Nxy,Tetta_1,Tetta_2,Qx,Qy,q):
-    if (A_Numeric):
-        Result = K_x*Nx + K_y*Ny - (Nx*Tetta_1 + Nxy*Tetta_2).diff(Xx) \
-                 - (Ny*Tetta_2 + Nxy*Tetta_1).diff(Xx) + Qx.diff(Xx) + Qy.diff(Yy) + q
-    else:
-        Result = 0
-    return Result
-def get_L4(Mx,Mxy,Qx):
-    if (A_Numeric):
-        Result = Mx.diff(Xx) + Mxy.diff(Yy) - Qx
-    else:
-        Result = 0
-    return Result
-def get_L5(My,Mxy,Qy):
-    if (A_Numeric):
-        Result = My.diff(Yy) + Mxy.diff(Xx)- Qy
-    else:
-        Result = 0
-    return Result
-
-def Get_Answer_Bub(w_coef,u_coef,v_coef,PsiX_coef,PciY_coef,Nx,Ny,Nxy,Mx,My,Mxy,Qx,Qy,Tetta_1,Tetta_2,Q_find):
-    Es = [0]*N*5
-
-    L1 = get_L1(Nx,Ny,Nxy,Qx,Tetta_1,Tetta_2)
-    L2 = get_L2(Nx,Ny,Nxy,Qy,Tetta_1,Tetta_2)
-    L3 = get_L3(Nx,Ny,Nxy,Tetta_1,Tetta_2,Qx,Qy,Q_find)
-    L4 = get_L4(Mx,Mxy,Qx)
-    L5 = get_L5(My,Mxy,Qy)
-
-
-    for j in range(1, N_x + 1):
-        for i in range(1, N_y + 1):
-            print("Now = ",(j - 1) * N_x + i - 1)
-            Es[(j - 1) * N_x + i - 1] = L1 * Get_w_sin_x_2(i) * Get_w_sin_y(j) #U
-            Es[(j - 1) * N_x + i - 1 + N] = L2 * Get_w_sin_x(i) * Get_w_sin_y_2(j) #V
-            Es[(j - 1) * N_x + i - 1 + N * 2] = L3 * Get_w_sin_x(i) * Get_w_sin_y(j)  #W
-            Es[(j - 1) * N_x + i - 1 + N * 3] = L4 * Get_w_cos_x(i) * Get_w_sin_y(j)  #PsiX
-            Es[(j - 1) * N_x + i - 1 + N * 4] = L5 * Get_w_sin_x(i) * Get_w_cos_y(j)  #PsiY
-
-    Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
-    Es[1] = integrate(Es[1], (Xx, Start_integral, A_lenght_x))
-    Es[2] = integrate(Es[2], (Xx, Start_integral, A_lenght_x))
-    Es[3] = integrate(Es[3], (Xx, Start_integral, A_lenght_x))
-    Es[4] = integrate(Es[4], (Xx, Start_integral, A_lenght_x))
-    Es[5] = integrate(Es[5], (Xx, Start_integral, A_lenght_x))
-
-    Es[0] = (1/2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
-    Es[1] = (1/2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
-    Es[2] = (1/2) * integrate(Es[2], (Yy, Start_integral, B_lenght_y))
-    Es[3] = (1/2) * integrate(Es[3], (Yy, Start_integral, B_lenght_y))
-    Es[4] = (1/2) * integrate(Es[4], (Yy, Start_integral, B_lenght_y))
-    Es[5] = (1/2) * integrate(Es[5], (Yy, Start_integral, B_lenght_y))
-
-    Result = []
-    Result_buf = []
-    Buf = []
-    Zeroes = [0] * N * 3
-    Buf_Symbols = []
-
-    for index in range(1, 4):
-        Result.append(Result_buf)
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(w_coef[i - 1]) + Es[1].diff(w_coef[i - 1]) + Es[2].diff(w_coef[i - 1]) + Es[3].diff(
-            w_coef[i - 1]) + Es[4].diff(w_coef[i - 1]) + Es[5].diff(w_coef[i - 1])))
-        Buf_Symbols.append(w_coef[i - 1])
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(u_coef[i - 1]) + Es[1].diff(u_coef[i - 1]) + Es[2].diff(u_coef[i - 1]) + Es[3].diff(
-            w_coef[i - 1]) + Es[4].diff(u_coef[i - 1]) + Es[5].diff(u_coef[i - 1])))
-        Buf_Symbols.append(u_coef[i - 1])
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(v_coef[i - 1]) + Es[1].diff(v_coef[i - 1]) + Es[2].diff(v_coef[i - 1]) + Es[3].diff(
-            v_coef[i - 1]) + Es[4].diff(v_coef[i - 1]) + Es[5].diff(v_coef[i - 1])))
-        Buf_Symbols.append(v_coef[i - 1])
-
-    for i in range(len(Buf)):
-        Buf[i] = nsimplify(Buf[i], tolerance=1e-20).evalf(15)
-
-    for solution in linsolve(Buf, Buf_Symbols):
-        Result = solution
-
-    return Result
-#Nuton
 def Get_Jacobian(Function_E, Result_w):
     #print("Jacodi start)")
     Jacobian = [0] * N * 5
@@ -912,6 +766,155 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
     plt.show()
     #axs.plot(w_for_graph,q_for_graph)
     return W_Result
+def Ne_Lin_Function_byPoint(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function, PsiX_function, PsiY_function,Sigma_x,Sigma_y,Sigma_tay):
+    #symbols
+    Ee = Symbol('E')
+    Hh = Symbol('h')
+    print("Start loop")
+    #Q_now = 0.01
+    #Q_now = 0
+    Miz = 0
+    Q_now = q_find
+    W_Result = [0] * (5)
+    W_Result[0] = [0.0001] * N*5
+
+    queue = multiprocessing.Queue()
+    timer = time.time()
+    Es = Es_Get.copy()
+
+    Simp = 1
+    if Simp == 1:
+        p1 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[0], queue, 0,))
+        p2 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[1], queue, 1,))
+        p3 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[2], queue, 2,))
+        p4 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[3], queue, 3,))
+        p5 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[4], queue, 4,))
+        p6 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[5], queue, 5,))
+        p7 = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[6], queue, 6,))
+    if Simp == 0:
+        p1 = multiprocessing.Process(target=intagrete_Es, args=(Es[0], queue, 0,))
+        p2 = multiprocessing.Process(target=intagrete_Es, args=(Es[1], queue, 1,))
+        p3 = multiprocessing.Process(target=intagrete_Es, args=(Es[2], queue, 2,))
+        p4 = multiprocessing.Process(target=intagrete_Es, args=(Es[3], queue, 3,))
+        p5 = multiprocessing.Process(target=intagrete_Es, args=(Es[4], queue, 4,))
+        p6 = multiprocessing.Process(target=intagrete_Es, args=(Es[5], queue, 5,))
+        p7 = multiprocessing.Process(target=intagrete_Es, args=(Es[6], queue, 6,))
+
+    p1.start()
+    p2.start()
+    p3.start()
+    p4.start()
+    p5.start()
+    p6.start()
+    p7.start()
+
+    active = 0
+    while active:
+        active = 0
+        if p1.is_alive():
+            #print(" p1 active")
+            active = 1
+        if p2.is_alive():
+            #print(" p2 active")
+            active = 1
+        if p3.is_alive():
+            #print(" p3 active")
+            active = 1
+        if p4.is_alive():
+            #print(" p4 active")
+            active = 1
+        if p5.is_alive():
+            #print(" p5 active")
+            active = 1
+        if p6.is_alive():
+            #print(" p6 active")
+            active = 1
+        if p7.is_alive():
+            #print(" p7 active")
+            active = 1
+
+    t = 0
+    if N==1:
+        t = 10
+    if N==4:
+        t = 300
+    p1.join(timeout= t)
+    print("p1 - join)")
+    p4.join(timeout= 1)
+    print("p4 - join)")
+    p3.join(timeout= 1)
+    print("p3 - join)")
+    p5.join(timeout= 1)
+    print("p5 - join)")
+    p6.join(timeout= 1)
+    print("p6 - join)")
+    p7.join(timeout= 1)
+    print("p7 - join)")
+    p2.join(timeout= 1)
+    print("p2 - join)")
+
+    Buf_Function = 0
+    print('Time %.6f' % (time.time() - timer))
+    j= 0
+    timer = time.time()
+    while queue.qsize() > 0:
+        buf = queue.get()
+        j+=1
+        Buf_Function += (1/2) * buf
+
+    print("Buf f = ",Buf_Function)
+    print("End subs")
+
+    j = 1
+    # Цикл по разным q
+    check = 0
+    print("Q_find = ", Q_now)
+    print("Start integrate 7")
+    Es[7] = (-2) * (Q_now * W_Function_get)
+    Es[7] = integrate(Es[7], (Xx, Start_integral, A_lenght_x))
+    Es[7] = (1/2) * integrate(Es[7], (Yy, Start_integral, B_lenght_y))
+    print("End 7 ")
+
+    New_Buf_Function = Buf_Function + Es[7]
+    W_Result[j] = Nuton_Iter(New_Buf_Function, eps, W_Result[j-1], w_coefs)
+
+    W_val = [] * N
+    U_val = [] * N
+    V_val = [] * N
+    PsiX_val = [] * N
+    PsiY_val = [] * N
+
+    for i in range(1, N + 1):
+        W_val.append(W_Result[j][i - 1])
+        U_val.append(W_Result[j][i - 1 + N])
+        V_val.append(W_Result[j][i - 1 + 2 * N])
+        PsiX_val.append(W_Result[j][i - 1 + 3 * N])
+        PsiY_val.append(W_Result[j][i - 1 + 4 * N])
+
+    for i in range(1, N + 1):
+        print("W(",j,")(",i,") = ",W_val[i - 1])
+    for i in range(1, N + 1):
+        print("U(", j, ")(", i, ") = ", U_val[i - 1])
+    for i in range(1, N + 1):
+        print("V(", j, ")(", i, ") = ", V_val[i - 1])
+    for i in range(1, N + 1):
+        print("PsiX(", j, ")(", i, ") = ", PsiX_val[i - 1])
+    for i in range(1, N + 1):
+        print("PsiY(", j, ")(", i, ") = ", PsiY_val[i - 1])
+    Miz = Draw_3d_Sigmas_main('Sigma_i', W_val, 1, U_function, V_function, W_Function, PsiX_function, PsiY_function,
+                              z,W_val, U_val, V_val, PsiX_val, PsiY_val,Sigma_x,Sigma_y,Sigma_tay)
+
+    Res_w = Get_W_Plane(A_lenght_x / 2, B_lenght_y / 2, 0, W_val, 3)
+    print("W(l/2) =",Res_w)
+    Res_w = Get_W_Plane(A_lenght_x / 4, B_lenght_y / 4, 0, W_val, 3)
+    print("W(l/4) =", Res_w)
+    j += 1
+    print("Miz = ", Miz)
+
+    print("Plot =")
+    #axs.plot(w_for_graph,q_for_graph)
+    return W_Result[j-1]
+# Nut iter
 def Nuton_Iter(Function_E, eps, w0, w_coefs):
     All_Results = []
     Res_now = w0
@@ -1092,7 +1095,8 @@ if __name__ == '__main__':
             print("Es_main[6] = ", Es_main[6])
             print("New_main")
 
-    while Check:
+
+
         Q_values.append(Q_now)
         Count_num += 1
         W_val = []
@@ -1106,9 +1110,10 @@ if __name__ == '__main__':
         Q_function = q_function(Q_now, 0)
 
         print("Start Nelin")
-        W_values = Ne_Lin_Function_Loop([0]*N*5, Es_main_buf,W_function,U_function, V_function, W_function, PsiX_function, PsiY_function
+        W_values = Ne_Lin_Function_byPoint([0]*N*5, Es_main_buf,W_function,U_function, V_function, W_function, PsiX_function, PsiY_function
                                         ,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function)
-        Check = 0
+
+
 
         for i in range(1, N + 1):
             W_val.append(W_values[i - 1])
@@ -1119,8 +1124,8 @@ if __name__ == '__main__':
 
 
         # Prints data :
-        #print("W values = ", W_val)
-        #print("U values = ", U_val)
-        #print("V values = ", V_val)
-        #print("Psi X values = ", V_val)
-        #print("Psi Y values = ", V_val)
+        print("W values = ", W_val)
+        print("U values = ", U_val)
+        print("V values = ", V_val)
+        print("Psi X values = ", V_val)
+        print("Psi Y values = ", V_val)

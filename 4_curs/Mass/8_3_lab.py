@@ -36,17 +36,18 @@ def replace_string(s):
     print(buf)
 
 Lyambda = np.mean(inputApplicationFlow)
-print(Lyambda)
-
+Lyambda_2 = 1/np.mean(inputTimeFlow)
 
 vals = expon.cdf(inputTimeFlow)
-print("Принимает гипотезу = ", np.allclose(inputTimeFlow, expon.ppf(vals)))
+print("Принимает гипотезу о соответствии первого распределения распределению Пуасона= ", np.allclose(inputTimeFlow, expon.ppf(vals)))
+print("Интенсивность входного потока = ",Lyambda)
 
 vals = poisson.cdf(inputApplicationFlow, Lyambda)
-print("Принимает гипотезу = ",np.allclose(inputApplicationFlow, poisson.ppf(vals, Lyambda)))
+print("Принимает гипотезу о соответствии первого распределения распределению экспонентациальному = ",np.allclose(inputApplicationFlow, poisson.ppf(vals, Lyambda)))
+print("Интенсивность выходного потока = ",Lyambda_2)
 
-Lyambda_2 = np.mean(inputTimeFlow)
-print(Lyambda_2)
+u = Lyambda_2
+l = Lyambda
 
 Array_intens = [0]*(size)
 for i in range (0,len(Array_intens)):
@@ -100,6 +101,7 @@ C_symbols =[0]*(size)
 P_symbols = [0]*(size)
 arrayFor_K_CH = [0]*(size)
 Static_eval = [0]*(size)
+buf = [0]*(size)
 for i in range (0,size):
     #arrayFor_K_CH[i] = [0]*9
     #Static_eval[i] = [0]*9
@@ -108,24 +110,26 @@ for i in range (0,size):
 
 arrayFor_K_CH[0] = 0
 Static_eval[0] = -1
+buf[0] = -1
 
 Tt = Symbol('t')
 for i in range(0, size):
     for j in range(0,size):
         #arrayFor_K_CH[i] += C_symbols[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
         Static_eval[i] += C_symbols[j] * eigenvectors[i][j]
+        buf[i] += C_symbols[j] * round(eigenvectors[i][j],4)
 
 
 for i in range(0, len(Static_eval)):
-    print(Static_eval[i])
+    print(buf[i])
 #for i in range(0, len(Static_eval)):
     #print(arrayFor_K_CH[i])
 
 Result = 0
 for solution in linsolve(Static_eval, C_symbols):
     Result = solution
-
-print("C coefs  =",Result)
+for c in Result:
+    print("C coefs  =",round(c,3))
 
 
 Transp_Array_intens = Array_intens.copy()
@@ -139,7 +143,7 @@ for i in range(0, size):
     buf = 0
     for j in range(0, size):
         arrayFor_K_CH[i] += Result[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
-        buf += round(Result[j] * eigenvectors[i][j],5) * round(math.e,4)**(Tt * round(eigenvalues[j],4))
+        buf += round(Result[j] * eigenvectors[i][j],5) * round(math.e,2)**(Tt * round(eigenvalues[j],2))
     print(buf)
 
 print("Results   = ")

@@ -86,7 +86,7 @@ print("System with C  = ")
 for i in range(0, size):
     buf = 0
     for j in range(0, size):
-        buf += C_symbols[j] * round(eigenvectors[i][j],2) * round(math.e,2)**(Tt * round(eigenvalues[j],1))
+        buf += C_symbols[j] * round(eigenvectors[i][j],2) * Symbol('e')**(Tt * round(eigenvalues[j],1))
     print(buf)
 
 
@@ -109,7 +109,7 @@ for i in range(0, size):
     buf = 0
     for j in range(0, size):
         arrayFor_K_CH[i] += Result[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
-        buf += round(Result[j] * eigenvectors[i][j],4) * round(math.e,2)**(Tt * round(eigenvalues[j],1))
+        buf += round(Result[j] * eigenvectors[i][j],4) * Symbol("e")**(Tt * round(eigenvalues[j],1))
     print(buf)
 
 print("Results   = ")
