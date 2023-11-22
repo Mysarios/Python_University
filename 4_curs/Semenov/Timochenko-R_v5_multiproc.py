@@ -11,6 +11,7 @@ import multiprocessing
 # Data for programm
 A_Numeric = 1
 Change = 3
+Type_Resolve = 2 # 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 eps = 0.0005
 N_x = 1
@@ -596,8 +597,48 @@ def get_L5(My,Mxy,Qy):
     else:
         Result = 0
     return Result
+def Get_Answer_Bub(Es):
+    Es_new = Es.copy()
+    queue = multiprocessing.Queue()
+    timer = time.time()
+    p = [0]* N * 5
 
-def Get_Answer_Bub(w_coef,u_coef,v_coef,PsiX_coef,PciY_coef,Nx,Ny,Nxy,Mx,My,Mxy,Qx,Qy,Tetta_1,Tetta_2,Q_find):
+    W_Result = [0] * (1000)
+    W_Result[0] = [0.0001] * N * 5
+
+    Simp = 1
+    if Simp == 1:
+        for i in range(0,N*5):
+            p[i] = multiprocessing.Process(target=intagrete_Es_Simp, args=(Es[i], queue, i,))
+    if Simp == 0:
+        for i in range(0, N * 5):
+            p[i] = multiprocessing.Process(target=intagrete_Es, args=(Es[i], queue, i,))
+
+    for i in range(0, N * 5):
+        p[i].start()
+
+    t = 0
+    if N == 1:
+        t = 100
+    if N == 4:
+        t = 360
+    p[0].join(timeout=t)
+    for i in range(1, N * 5):
+        p[i].join(timeout=t)
+        print("p",i," - join")
+    j= 0
+    Buf_Function = []
+    while queue.qsize() > 0:
+        buf = queue.get()
+        Buf_Function.append(buf)
+        print("j =",j," =  ",buf)
+        j+=1
+    print('Time %.6f' % (time.time() - timer))
+
+    W_Result[1] = Bubnov_Iter(Buf_Function, eps, W_Result[0])
+    print("W_result =",W_Result[1])
+    return
+def Get_Es_Bub(Nx,Ny,Nxy,Mx,My,Mxy,Qx,Qy,Tetta_1,Tetta_2,Q_find):
     Es = [0]*N*5
 
     L1 = get_L1(Nx,Ny,Nxy,Qx,Tetta_1,Tetta_2)
@@ -616,53 +657,10 @@ def Get_Answer_Bub(w_coef,u_coef,v_coef,PsiX_coef,PciY_coef,Nx,Ny,Nxy,Mx,My,Mxy,
             Es[(j - 1) * N_x + i - 1 + N * 3] = L4 * Get_w_cos_x(i) * Get_w_sin_y(j)  #PsiX
             Es[(j - 1) * N_x + i - 1 + N * 4] = L5 * Get_w_sin_x(i) * Get_w_cos_y(j)  #PsiY
 
-    Es[0] = integrate(Es[0], (Xx, Start_integral, A_lenght_x))
-    Es[1] = integrate(Es[1], (Xx, Start_integral, A_lenght_x))
-    Es[2] = integrate(Es[2], (Xx, Start_integral, A_lenght_x))
-    Es[3] = integrate(Es[3], (Xx, Start_integral, A_lenght_x))
-    Es[4] = integrate(Es[4], (Xx, Start_integral, A_lenght_x))
-    Es[5] = integrate(Es[5], (Xx, Start_integral, A_lenght_x))
-
-    Es[0] = (1/2) * integrate(Es[0], (Yy, Start_integral, B_lenght_y))
-    Es[1] = (1/2) * integrate(Es[1], (Yy, Start_integral, B_lenght_y))
-    Es[2] = (1/2) * integrate(Es[2], (Yy, Start_integral, B_lenght_y))
-    Es[3] = (1/2) * integrate(Es[3], (Yy, Start_integral, B_lenght_y))
-    Es[4] = (1/2) * integrate(Es[4], (Yy, Start_integral, B_lenght_y))
-    Es[5] = (1/2) * integrate(Es[5], (Yy, Start_integral, B_lenght_y))
-
-    Result = []
-    Result_buf = []
-    Buf = []
-    Zeroes = [0] * N * 3
-    Buf_Symbols = []
-
-    for index in range(1, 4):
-        Result.append(Result_buf)
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(w_coef[i - 1]) + Es[1].diff(w_coef[i - 1]) + Es[2].diff(w_coef[i - 1]) + Es[3].diff(
-            w_coef[i - 1]) + Es[4].diff(w_coef[i - 1]) + Es[5].diff(w_coef[i - 1])))
-        Buf_Symbols.append(w_coef[i - 1])
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(u_coef[i - 1]) + Es[1].diff(u_coef[i - 1]) + Es[2].diff(u_coef[i - 1]) + Es[3].diff(
-            w_coef[i - 1]) + Es[4].diff(u_coef[i - 1]) + Es[5].diff(u_coef[i - 1])))
-        Buf_Symbols.append(u_coef[i - 1])
-
-    for i in range(1, N + 1):
-        Buf.append((Es[0].diff(v_coef[i - 1]) + Es[1].diff(v_coef[i - 1]) + Es[2].diff(v_coef[i - 1]) + Es[3].diff(
-            v_coef[i - 1]) + Es[4].diff(v_coef[i - 1]) + Es[5].diff(v_coef[i - 1])))
-        Buf_Symbols.append(v_coef[i - 1])
-
-    for i in range(len(Buf)):
-        Buf[i] = nsimplify(Buf[i], tolerance=1e-20).evalf(15)
-
-    for solution in linsolve(Buf, Buf_Symbols):
-        Result = solution
-
-    return Result
+    print("ES",Es)
+    return Es
 #Nuton
-def Get_Jacobian(Function_E, Result_w):
+def Get_Jacobian_Nuton(Function_E, Result_w):
     #print("Jacodi start)")
     Jacobian = [0] * N * 5
     Def_Function = [0] * N * 5
@@ -689,7 +687,34 @@ def Get_Jacobian(Function_E, Result_w):
             #print("J[", row, "][", column, "] =", Jacobian[row][column])
     #print("Result J =", Jacobian)
     return Jacobian
-def Get_New_iterarion(Function_E, Jackobi_inv, Last_step_X, a):
+def Get_Jacobian_Bubnov(Function_E, Result_w):
+    #print("Jacodi start)")
+    Jacobian = [0] * N * 5
+    Def_Function = Function_E
+    Symbol_Function = [0] * N * 5
+
+    #print("Function E",Function_E)
+    for i in range(0, N):
+        Symbol_Function[i] = 'w' + str(i + 1)
+        Symbol_Function[i + N] = 'u' + str(i + 1)
+        Symbol_Function[i + N * 2] = 'v' + str(i + 1)
+        Symbol_Function[i + N * 3] = 'PsiX' + str(i + 1)
+        Symbol_Function[i + N * 4] = 'PsiY' + str(i + 1)
+
+    for i in range(0, N * 5):
+        Jacobian[i] = [0] * N * 5
+        Def_Function[i] = Function_E[i]
+        #print("D[",i,"] =",Def_Function[i])
+
+    for row in range(0, N * 5):
+        for column in range(0, N * 5):
+            Jacobian[row][column] = Def_Function[row].diff(Symbol_Function[column])
+            for W_coefs in range(0, N * 5):
+                Jacobian[row][column] = Jacobian[row][column].subs((Symbol_Function[W_coefs]), (Result_w[W_coefs]))
+            print("J[", row, "][", column, "] =", Jacobian[row][column])
+    #print("Result J =", Jacobian)
+    return Jacobian
+def Get_New_iterarion_Nuton(Function_E, Jackobi_inv, Last_step_X, a):
     Def_Function = [0] * N * 5
     Symbol_Function = [0] * N * 5
     #print( "A = ", a)
@@ -718,7 +743,42 @@ def Get_New_iterarion(Function_E, Jackobi_inv, Last_step_X, a):
     #W = W * Jackobi_inv
     #print("Result = ", Result)
     return Result
-def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function, PsiX_function, PsiY_function,Sigma_x,Sigma_y,Sigma_tay):
+def Get_New_iterarion_Bubnov(Function_E, Jackobi_inv, Last_step_X, a):
+    Def_Function = [0] * N * 5
+    Symbol_Function = [0] * N * 5
+    #print( "A = ", a)
+    for i in range(0, N):
+        Symbol_Function[i] = 'w' + str(i + 1)
+        Symbol_Function[i + N] = 'u' + str(i + 1)
+        Symbol_Function[i + N * 2] = 'v' + str(i + 1)
+        Symbol_Function[i + N * 3] = 'PsiX' + str(i + 1)
+        Symbol_Function[i + N * 4] = 'PsiY' + str(i + 1)
+
+    for i in range(0, N * 5):
+        Def_Function[i] = Function_E[i]
+        print(i, " Func e =",Function_E[i])
+    for i in range(0, N * 5):
+        for j in range(0, N * 5):
+            Def_Function[i] = Function_E[i].diff(Symbol_Function[j])
+            print(Jackobi_inv[i][j])
+    for i in range(0, N * 5):
+        for W_coefs in range(0, N * 5):
+            Def_Function[i] = Def_Function[i].subs(Symbol_Function[W_coefs], (Last_step_X[W_coefs]))
+        print("Def_Function[", i, "] = ", Def_Function[i])
+
+    Def_Function = sym.Matrix(Def_Function)
+    W = sym.Matrix(Last_step_X)
+    #print(Last_step_X)
+    #print("w = ", W)
+    # print("W =" ,W)
+    # print("a =",a)
+    # print("Ja =",Jackobi_inv)
+    # print("DF =",Def_Function)
+    Result = W - a * (Jackobi_inv * Def_Function)
+    #W = W * Jackobi_inv
+    #print("Result = ", Result)
+    return Result
+def Nuton_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function, PsiX_function, PsiY_function,Sigma_x,Sigma_y,Sigma_tay):
     #symbols
     Ee = Symbol('E')
     Hh = Symbol('h')
@@ -912,6 +972,13 @@ def Ne_Lin_Function_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W
     plt.show()
     #axs.plot(w_for_graph,q_for_graph)
     return W_Result
+def Bubnov_Loop(w_coef,u_coef,v_coef,PsiX_coef,PciY_coef,Nx,Ny,Nxy,Mx,My,Mxy,Qx,Qy,Tetta_1,Tetta_2,Q_find):
+    Es = [0] * N *5
+
+    Es = Get_Es_Bub(Nx,Ny,Nxy,Mx,My,Mxy,Qx,Qy,Tetta_1,Tetta_2,Q_find)
+    Get_Answer_Bub(Es)
+    print("Get_Bub")
+
 def Nuton_Iter(Function_E, eps, w0, w_coefs):
     All_Results = []
     Res_now = w0
@@ -925,13 +992,13 @@ def Nuton_Iter(Function_E, eps, w0, w_coefs):
         Count_Iterions += 1
         Max_eps = 0
         #print("F_e",Function_E)
-        Jacobi = Get_Jacobian(Function_E, Res_now)
+        Jacobi = Get_Jacobian_Nuton(Function_E, Res_now)
         #print("J_e", Jacobi)
         Jackobi_Matrix = sym.Matrix(Jacobi)
         Jacobi_Invariant = Jackobi_Matrix.inv()
 
         #print("Jacobi = ", Jackobi_Matrix)
-        Res_new = Get_New_iterarion(Function_E, Jacobi_Invariant, Res_now, Check_Loop)
+        Res_new = Get_New_iterarion_Nuton(Function_E, Jacobi_Invariant, Res_now, Check_Loop)
         print("Res_now = ",Res_new)
         np.array(Res_new).astype(np.float64)
 
@@ -965,7 +1032,57 @@ def Nuton_Iter(Function_E, eps, w0, w_coefs):
         #print("R_now",Res_now)
 
     return Res_now
+def Bubnov_Iter(Function_E, eps, w0):
+    All_Results = []
+    Res_now = w0
+    Now_eps = 1
+    Check_Loop = 1
+    Count_Iterions = 0
+    New_Eps = [0] * N*5
 
+    while (Now_eps > eps):
+        Count_Iterions += 1
+        Max_eps = 0
+
+        Jacobi = Get_Jacobian_Bubnov(Function_E, Res_now)
+        Jackobi_Matrix = sym.Matrix(Jacobi)
+        Jacobi_Invariant = Jackobi_Matrix.inv()
+
+        #print("Jacobi = ", Jackobi_Matrix)
+        Res_new = Get_New_iterarion_Bubnov(Function_E, Jacobi_Invariant, Res_now, Check_Loop)
+        print("Res_now = ",Res_new)
+        np.array(Res_new).astype(np.float64)
+
+        for i in range(0, N*5):
+            New_Eps[i] = abs(Res_new[i] - Res_now[i])
+            if (New_Eps[i] > Max_eps):
+                Max_eps = New_Eps[i]
+
+        #print("max = ",Max_eps)
+        Res_Last_now = Res_now
+        Now_eps = Max_eps
+        Res_now = Res_new
+        All_Results.append(Res_now)
+
+        if Count_Iterions > 10:
+            Check_Loop = Check_Loop / 10
+            Res_now = Res_Last_now
+            if All_Results[Count_Iterions - 3][0] < All_Results[Count_Iterions - 2][0] < \
+                    All_Results[Count_Iterions - 1][0]:
+                if Check_Loop != 1:
+                    Check_Loop *= 10
+                Res_now = Res_new
+            if All_Results[Count_Iterions - 3][0] > All_Results[Count_Iterions - 2][0] > \
+                    All_Results[Count_Iterions - 1][0]:
+                if Check_Loop != 1:
+                    Check_Loop *= 10
+                Res_now = Res_new
+        if Count_Iterions > 50:
+            Now_eps = 0
+        #print("New_iteration = ", Res_now)
+        #print("R_now",Res_now)
+
+    return Res_now
 if __name__ == '__main__':
     # Main code
 
@@ -1074,7 +1191,7 @@ if __name__ == '__main__':
             MXY_I = M_xy_Izo(G12, nu_12,KSI_12)
 
             Q_X = Q_x(PsiX_function,G13, TETTA_1)
-            Q_y = Q_y(PsiY_function, G23, TETTA_2)
+            Q_Y = Q_y(PsiY_function, G23, TETTA_2)
 
             Es_main[0] = NX_I * F_EX
             print("Es_main[0] = ",Es_main[0])
@@ -1088,7 +1205,7 @@ if __name__ == '__main__':
             print("Es_main[4] = ", Es_main[4])
             Es_main[5] = Q_X * (PsiX_function - TETTA_1)
             print("Es_main[5] = ", Es_main[5])
-            Es_main[6] = Q_y * (PsiY_function - TETTA_2)
+            Es_main[6] = Q_Y * (PsiY_function - TETTA_2)
             print("Es_main[6] = ", Es_main[6])
             print("New_main")
 
@@ -1105,9 +1222,14 @@ if __name__ == '__main__':
         Es_main_buf = Es_main.copy()
         Q_function = q_function(Q_now, 0)
 
-        print("Start Nelin")
-        W_values = Ne_Lin_Function_Loop([0]*N*5, Es_main_buf,W_function,U_function, V_function, W_function, PsiX_function, PsiY_function
-                                        ,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function)
+        if Type_Resolve == 1:
+            print("Start Nelin")
+            W_values = Nuton_Loop([0]*N*5, Es_main_buf,W_function,U_function, V_function, W_function, PsiX_function, PsiY_function
+                                            ,Sigma_x_Function,Sigma_y_Function,Tay_xy_Function)
+        if Type_Resolve == 2:
+            print("Start Bubnov")
+            W_values = Bubnov_Loop(w_vals,u_vals,v_vals,PsiX_val,PsiY_val
+                                   ,NX_I,NY_I,NXY_I,MX_I,MY_I,MXY_I,Q_X,Q_Y,TETTA_1,TETTA_2,3.14)
         Check = 0
 
         for i in range(1, N + 1):
