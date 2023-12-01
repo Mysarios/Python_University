@@ -964,14 +964,14 @@ def Bubnov_byPoint(Nx,Ny,Nxy,Mx,My,Mxy,Qx,Qy,Tetta_1,Tetta_2,Q_find):
             if N == 1:
                 t = 100
             if N == 4:
-                t = 600
+                t = 550
         else:
             if N == 1:
                 t = 100
             if N == 4:
-                t = 310
+                t = 260
 
-        p[index_thread * N].join(timeout=t)
+        p[index_thread * 5].join(timeout=t)
         print("p", 0, " - join")
         for i in range(index_thread * 5+1,index_thread * 5 + 5):
             p[i].join(timeout=1)

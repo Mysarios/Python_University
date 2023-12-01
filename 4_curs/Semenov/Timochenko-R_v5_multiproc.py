@@ -11,14 +11,15 @@ import multiprocessing
 # Data for programm
 A_Numeric = 1
 Change = 3
-Type_Resolve = 2# 0 - Ritz 1 - Nuton 2 - Bubnov
+Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 eps = 0.0005
-N_x = 2
-N_y = 2
+N_x = 1
+N_y = 1
 N = N_x * N_y
 # graph points
 Size = 10
+Size_visualization = 20
 # Data about object main
 H_coef = 1
 h = 0.09 * H_coef
@@ -240,6 +241,98 @@ def Get_W_Plane(x_val, y_val, function, Values, type):
                     (2 * j - 1) * y_val * m.pi / B_lenght_y)
 
     return W_result
+def Draw_deformed_plot(W_func,U_func,V_func):
+    x_array = [0] * (Size_visualization*Size_visualization)
+    y_array = [0] * (Size_visualization*Size_visualization)
+    x_array_graph = [0] * (Size_visualization)
+    y_array_graph = [0] * (Size_visualization)
+    Min_ab = min(A_lenght_x,B_lenght_y)
+    Max_ab = max(A_lenght_x,B_lenght_y)
+
+    X_array = [0] * (Size_visualization * Size_visualization)
+    Y_array = [0] * (Size_visualization * Size_visualization)
+    Z_array = [0] * (Size_visualization * Size_visualization)
+
+    R_main = max(R_1_x,R_2_y) - min(R_1_x,R_2_y)
+    r_main = min(R_1_x,R_2_y)
+
+    x_step = (2 * Min_ab / (2 * r_main)) / Size_visualization
+    y_step = (2 * Max_ab / (2 * (R_main + r_main))) / Size_visualization
+
+    x_array[0] = -Min_ab/(2*r_main)
+    y_array[0] = -Max_ab/(2*(R_main+r_main))
+    for index in range(1,Size_visualization*Size_visualization):
+        x_array[index] = x_array[index - 1] + x_step
+        y_array[index] = y_array[index - 1] + y_step
+    for index in range(1,Size_visualization):
+        x_array_graph[index] = x_array[index - 1] + x_step
+        y_array_graph[index] = y_array[index - 1] + y_step
+
+    for index in range(0,Size_visualization*Size_visualization):
+        X_array[index] = (R_main + r_main*cos(x_array[index]))*sin(y_array[index])
+        Y_array[index] = (R_main + r_main*cos(x_array[index]))*cos(y_array[index])
+        Z_array[index] = r_main*sin(x_array[index])
+
+    d_z_array_1 = [] * Size_visualization
+    for index in range(0, Size_visualization):
+        d_z_array_1.append([])
+        for index_2 in range(0, Size_visualization):
+            d_z_array_1[index].append(Z_array[index_2 + index * Size_visualization])
+
+    d_z_array_1 = np.array(d_z_array_1)
+    x_array_graph = np.array(x_array_graph)
+    y_array_graph = np.array(y_array_graph)
+    X, Y = np.meshgrid(x_array_graph, y_array_graph)
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, d_z_array_1, cmap='viridis', edgecolor='green')
+    ax.set_xlabel('x [м]')
+    ax.set_ylabel('y [м]')
+    ax.set_zlabel('z [м]')
+    ax.set_title("Visual")
+    plt.show()
+
+    Nu_array = [0] * 3
+    Nv_array = [0] * 3
+    Nw_array = [0] * 3
+
+    Nu_array[0] = -sin(Xx)*sin(Yy)*U_func
+    Nu_array[1] = -sin(Xx)*cos(Yy)*U_func
+    Nu_array[2] = cos(Xx)*V_func
+
+    Nv_array[0] = cos(Yy) * V_func
+    Nv_array[1] = -sin(Yy) * V_func
+    Nv_array[2] = 0 * V_func
+
+    Nw_array[0] = cos(Xx)*sin(Yy) * W_func
+    Nw_array[1] = cos(Xx)*cos(Yy) * W_func
+    Nw_array[2] = sin(Xx) * W_func
+    for index in range(0,Size_visualization*Size_visualization):
+        X_array[index] = X_array[index] + Nu_array[0].subs([(Xx, x_array[index]), (Yy, y_array[index])]) + Nv_array[0].subs([(Xx, x_array[index]), (Yy, y_array[index])]) + Nw_array[0].subs([(Xx, x_array[index]), (Yy, y_array[index])])
+        Y_array[index] = Y_array[index] + Nu_array[1].subs([(Xx, x_array[index]), (Yy, y_array[index])]) + Nv_array[2].subs([(Xx, x_array[index]), (Yy, y_array[index])]) + Nw_array[2].subs([(Xx, x_array[index]), (Yy, y_array[index])])
+        Z_array[index] = Z_array[index] + Nu_array[2].subs([(Xx, x_array[index]), (Yy, y_array[index])]) + Nv_array[2].subs([(Xx, x_array[index]), (Yy, y_array[index])]) + Nw_array[2].subs([(Xx, x_array[index]), (Yy, y_array[index])])
+
+    d_z_array = []*Size_visualization
+    for index in range(0,Size_visualization):
+        d_z_array.append([])
+        for index_2 in range(0, Size_visualization):
+            d_z_array[index].append(Z_array[index_2 + index*Size_visualization])
+
+    z_array = np.array(d_z_array)
+    x_array_graph = np.array(x_array_graph)
+    y_array_graph = np.array(y_array_graph)
+    X, Y = np.meshgrid(x_array_graph, y_array_graph)
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(X, Y, z_array, cmap='viridis', edgecolor='green')
+    ax.set_xlabel('x [м]')
+    ax.set_ylabel('y [м]')
+    ax.set_zlabel('z [м]')
+    ax.set_title("Visual")
+    plt.show()
+
 def Draw_3d_W(Function, Values_Result, type_f):
     x_array = []
     y_array = []
@@ -996,6 +1089,8 @@ def Nuton_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function,
     W_Result = [0] * (1000)
     W_Result[0] = [0.0001] * N*5
 
+    Return_result = [0]*5*N
+
     queue = multiprocessing.Queue()
     timer = time.time()
     Es = Es_Get.copy()
@@ -1098,14 +1193,19 @@ def Nuton_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function,
 
         for i in range(1, N + 1):
             print("W(",j,")(",i,") = ",W_val[i - 1])
+            Return_result[i-1] =W_val[i - 1]
         for i in range(1, N + 1):
             print("U(", j, ")(", i, ") = ", U_val[i - 1])
+            Return_result[i-1 +N] =U_val[i - 1]
         for i in range(1, N + 1):
             print("V(", j, ")(", i, ") = ", V_val[i - 1])
+            Return_result[i-1 +N*2] =V_val[i - 1]
         for i in range(1, N + 1):
             print("PsiX(", j, ")(", i, ") = ", PsiX_val[i - 1])
+            Return_result[i-1 +N*3] =PsiX_val[i - 1]
         for i in range(1, N + 1):
             print("PsiY(", j, ")(", i, ") = ", PsiY_val[i - 1])
+            Return_result[i-1 +N*4] =PsiY_val[i - 1]
 
             #print("U(", j, ")", W_Result[j][i - 1 + N])
             #print("V(", j, ")", W_Result[j][i - 1 + 2 * N])
@@ -1148,7 +1248,8 @@ def Nuton_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function,
     #plt.plot(Ww, Qq)
     plt.show()
     #axs.plot(w_for_graph,q_for_graph)
-    return W_Result
+    print("Nuton result =",Return_result)
+    return Return_result
 def Nuton_Iter(Function_E, eps, w0, w_coefs):
     All_Results = []
     Res_now = w0
@@ -1348,6 +1449,8 @@ if __name__ == '__main__':
         if Type_Resolve == 2:
             print("Start Bubnov")
             W_values = Bubnov_Loop(NX_I, NY_I, NXY_I, MX_I, MY_I, MXY_I, Q_X, Q_Y, TETTA_1, TETTA_2, 3.14)
+        print("W_vals")
+        print(W_values)
         Check = 0
 
         for i in range(1, N + 1):
@@ -1357,7 +1460,21 @@ if __name__ == '__main__':
             PsiX_val.append(W_values[i - 1 + 3 * N])
             PsiY_val.append(W_values[i - 1 + 4 * N])
 
-
+        Symbol_Function = [0] * N * 5
+        # print( "A = ", a)
+        for i in range(0, N):
+            Symbol_Function[i] = 'w' + str(i + 1)
+            Symbol_Function[i + N] = 'u' + str(i + 1)
+            Symbol_Function[i + N * 2] = 'v' + str(i + 1)
+        for index in range(0, N):
+            W_function = W_function.subs(Symbol_Function[i],W_values[i])
+            U_function = U_function.subs(Symbol_Function[i + N],W_values[i+N])
+            V_function = V_function.subs(Symbol_Function[i + N*2],W_values[i+N*2])
+        print("Results =")
+        print(W_function)
+        print(U_function)
+        print(V_function)
+        Draw_deformed_plot(W_function,U_function,V_function)
         # Prints data :
         #print("W values = ", W_val)
         #print("U values = ", U_val)
