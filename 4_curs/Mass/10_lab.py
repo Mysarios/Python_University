@@ -6,11 +6,12 @@ from scipy.stats import *
 from numpy import linalg as LA
 from sympy import *
 
-K = 2
-L = 5
-size = K + L + 1
-u = 0.16
+Queue = 2
+Service = 1
+size = Queue + Service + 1
+u = 6.25
 l = 2.12
+w = l * 0.1
 
 inputApplicationFlow = [3, 2, 3, 1, 4, 2, 4, 2, 0, 2, 1, 3, 6, 4, 2, 1, 2,
                         1, 1, 2, 2, 2, 4, 5, 1, 0, 1, 2, 0, 2, 1, 1, 3,
@@ -49,65 +50,60 @@ print("Интенсивность выходного потока = ",Lyambda_2)
 u = Lyambda_2
 l = Lyambda
 
+#Получение первого для очереди = 5
+print("Queue = 5")
+#Создаем матрицу А
 Array_intens = [0]*(size)
 for i in range (0,len(Array_intens)):
     Array_intens[i] = [0]*(size)
-
-
-#Uu = Symbol('u')
-intens = 1
+intens = 0
+#Нижняя линия
 for low in range(1,len(Array_intens)):
-    Array_intens[low][low-1] = intens * u
-    if intens < K:
-        intens +=1
-
-#Ll = Symbol('l')
+    Array_intens[low][low-1] = u + intens * w
+    intens +=1
+#Верхняя линия
 for high in range(0,len(Array_intens)-1):
     Array_intens[high][high+1] = l
-
-
+#Средняя линия
 for middle in range(0,len(Array_intens)-1):
     Array_intens[middle][middle] -= (Array_intens[middle][middle-1] +Array_intens[middle][middle+1])
 
-Array_intens[len(Array_intens)-1][len(Array_intens)-1] = -K*u
+Array_intens[len(Array_intens)-1][len(Array_intens)-1] = -Queue * w - u
 
 print("base =")
 for i in range(0,size):
     print(Array_intens[i])
 
+#Транспонируем матрицу А
 Matrix = np.array(Array_intens)
 Matrix = Matrix.transpose()
 print("transp base = =")
 for i in range(0,size):
     print(Matrix[i])
+
+#Ищем собственные вектора и числа
 eigenvalues, eigenvectors = LA.eig(Matrix)
 print("E values = ")
-
 for i in range(0,size):
     if abs(eigenvalues[i]) - 0.005 < 0:
         eigenvalues[i] = 0
     print("E" + str(i) + " ",eigenvalues[i])
-
 print("E vectors = ")
-
 for i in range(0, size):
     buf = "EV"+ str(i)
     for j in range(0, size):
         buf += ": {:.4f}".format(eigenvectors[i][j]) + " "
     print(buf)
 
-
+#Создание системы для К-Ч
 C_symbols =[0]*(size)
 P_symbols = [0]*(size)
 arrayFor_K_CH = [0]*(size)
 Static_eval = [0]*(size)
 buf = [0]*(size)
 for i in range (0,size):
-    #arrayFor_K_CH[i] = [0]*9
-    #Static_eval[i] = [0]*9
     C_symbols[i] = Symbol('C' + str(i))
     P_symbols[i] = Symbol('P' + str(i))
-
 arrayFor_K_CH[0] = 0
 Static_eval[0] = -1
 buf[0] = -1
@@ -115,16 +111,19 @@ buf[0] = -1
 Tt = Symbol('t')
 for i in range(0, size):
     for j in range(0,size):
-        #arrayFor_K_CH[i] += C_symbols[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
         Static_eval[i] += C_symbols[j] * eigenvectors[i][j]
         buf[i] += C_symbols[j] * round(eigenvectors[i][j],4)
-
-
 for i in range(0, len(Static_eval)):
     print(buf[i])
-#for i in range(0, len(Static_eval)):
-    #print(arrayFor_K_CH[i])
 
+print("System with C  = ")
+for i in range(0, size):
+    buf = 0
+    for j in range(0, size):
+        buf += C_symbols[j] * round(eigenvectors[i][j],2) * Symbol('e')**(Tt * round(eigenvalues[j],1))
+    print(buf)
+
+#Поиск C коэфы
 Result = 0
 for solution in linsolve(Static_eval, C_symbols):
     Result = solution
@@ -135,9 +134,10 @@ for c in Result:
 Transp_Array_intens = Array_intens.copy()
 Transp_Array_intens = np.array(Transp_Array_intens)
 Transp_Array_intens = Transp_Array_intens.transpose()
-for i in range(0,K+L):
+for i in range(0, Queue + Service):
     print(Transp_Array_intens[i])
 
+#Вывод системы
 print("System   = ")
 for i in range(0, size):
     buf = 0
@@ -145,7 +145,6 @@ for i in range(0, size):
         arrayFor_K_CH[i] += Result[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
         buf += round(Result[j] * eigenvectors[i][j],5) * round(math.e,2)**(Tt * round(eigenvalues[j],2))
     print(buf)
-
 print("Results   = ")
 Sym = 0
 limit_expr = []
@@ -155,68 +154,153 @@ for i in range (0,len(arrayFor_K_CH)):
     print(" Limit ",i," = ",round(limit_expr[i],9))
 print("Check sym =", round(Sym,2))
 
+last_result = limit_expr
+#for m in range(3,20):
+check_eps = 1
+while check_eps > 0.00001:
+    Queue += 1
+    size = Queue + Service + 1
+    #Создаем матрицу А
+    Array_intens = [0]*(size)
+    for i in range (0,len(Array_intens)):
+        Array_intens[i] = [0]*(size)
+    intens = 1
+    # Нижняя линия
+    for low in range(1, len(Array_intens)):
+        Array_intens[low][low - 1] = u + intens * w
+        intens += 1
+    # Верхняя линия
+    for high in range(0, len(Array_intens) - 1):
+        Array_intens[high][high + 1] = l
+    # Средняя линия
+    for middle in range(0, len(Array_intens) - 1):
+        Array_intens[middle][middle] -= (Array_intens[middle][middle - 1] + Array_intens[middle][middle + 1])
+    Array_intens[len(Array_intens) - 1][len(Array_intens) - 1] = -Queue * w - u
+    #print("base =")
+    #for i in range(0,size):
+        #print(Array_intens[i])
 
+    #Транспонируем матрицу А
+    Matrix = np.array(Array_intens)
+    Matrix = Matrix.transpose()
+    #print("transp base = =")
+    #for i in range(0,size):
+        #print(Matrix[i])
+
+    #Ищем собственные вектора и числа
+    eigenvalues, eigenvectors = LA.eig(Matrix)
+    #print("E values = ")
+    for i in range(0,size):
+        if abs(eigenvalues[i]) - 0.005 < 0:
+            eigenvalues[i] = 0
+        #print("E" + str(i) + " ",eigenvalues[i])
+    #print("E vectors = ")
+    for i in range(0, size):
+        buf = "EV"+ str(i)
+        for j in range(0, size):
+            buf += ": {:.4f}".format(eigenvectors[i][j]) + " "
+        #print(buf)
+
+    #Создание системы для К-Ч
+    C_symbols =[0]*(size)
+    P_symbols = [0]*(size)
+    arrayFor_K_CH = [0]*(size)
+    Static_eval = [0]*(size)
+    buf = [0]*(size)
+    for i in range (0,size):
+        C_symbols[i] = Symbol('C' + str(i))
+        P_symbols[i] = Symbol('P' + str(i))
+    arrayFor_K_CH[0] = 0
+    Static_eval[0] = -1
+    buf[0] = -1
+
+    Tt = Symbol('t')
+    for i in range(0, size):
+        for j in range(0,size):
+            Static_eval[i] += C_symbols[j] * eigenvectors[i][j]
+            buf[i] += C_symbols[j] * round(eigenvectors[i][j],4)
+    #for i in range(0, len(Static_eval)):
+        #print(buf[i])
+
+    #Поиск C коэфы
+    Result = 0
+    for solution in linsolve(Static_eval, C_symbols):
+        Result = solution
+    #for c in Result:
+        #print("C coefs  =",round(c,3))
+
+
+    Transp_Array_intens = Array_intens.copy()
+    Transp_Array_intens = np.array(Transp_Array_intens)
+    Transp_Array_intens = Transp_Array_intens.transpose()
+    #for i in range(0, Queue + Service):
+        #print(Transp_Array_intens[i])
+
+    #Вывод системы
+    #print("System   = ")
+    for i in range(0, size):
+        buf = 0
+        for j in range(0, size):
+            arrayFor_K_CH[i] += Result[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
+            buf += round(Result[j] * eigenvectors[i][j],5) * round(math.e,2)**(Tt * round(eigenvalues[j],2))
+        #print(buf)
+    print("Results(",Queue,")   = ")
+    Sym = 0
+    limit_expr = []
+    for i in range (0,len(arrayFor_K_CH)):
+        limit_expr.append(limit(arrayFor_K_CH[i], Tt, oo))
+        Sym += limit_expr[i]
+        print(" Limit ",i," = ",round(limit_expr[i],9))
+    print("Check sym =", round(Sym,2))
+    check_eps = 0
+    for result_index in range(0,len(last_result)):
+        check_eps+= round(abs(last_result[result_index] - limit_expr[result_index]),5)
+    print(check_eps)
+    last_result = limit_expr
+
+#Вывод характеристик
 print("Effectivnes params by t = oo:")
 systemStrain = Lyambda/Lyambda_2
 print(" Strain = ",systemStrain)
 systemStrainPerChannel = systemStrain/2
 print(" Strain per channel = ",systemStrainPerChannel)
-
-chanceOfFail = round(limit_expr[len(limit_expr)-1],5)
+chanceOfFail = 0
 print(" Chance fail = ", chanceOfFail)
-chanceOfService = 1 - chanceOfFail
+chanceOfService = 1
 print(" Chance Service = ", chanceOfService)
-relativeThroughput = chanceOfService
-print(" Relative throughput = ", relativeThroughput)
-absoluteThroughput = Lyambda * chanceOfService
-print(" Absolute throughput = ", absoluteThroughput)
 
-averageMaintenance = 0                                  #Среднее заявок под обслуживанием  Nоб
-for k in range(0,K):
-    averageMaintenance += k * round(limit_expr[k],5)
-for k in range(K,size):
-    averageMaintenance += K * round(limit_expr[k],5)
-
-print(" Average maintenance = ", averageMaintenance)
-
-averageQueue = 0                                        #Среднее заявок  в очереди Nоч
-for k in range(K+1,size):
-    averageQueue += (k-K) * round(limit_expr[k],5)
+averageQueue = 0                                                                          #Среднее заявок  в очереди Nоч
+for k in range(1, size):
+    averageQueue += k * round(limit_expr[k], 5)
 print(" Average queue = ", averageQueue)
 
-averageSystem = averageQueue + averageMaintenance       #Среднее пасивов  Nсист
+absoluteThroughput = l - w * averageQueue
+print(" Absolute throughput = ", absoluteThroughput)
+relativeThroughput = absoluteThroughput/u
+print(" Relative throughput = ", relativeThroughput)
+
+
+averageMaintenance = absoluteThroughput/ u                                        #Среднее заявок под обслуживанием  Nоб
+print(" Average maintenance = ", averageMaintenance)
+
+averageSystem = averageQueue + averageMaintenance                                       #Среднее заявок в системе  Nсист
 print(" Average system = ", averageSystem)
 
-averageWait = 0                                         #Среднее простоя Nпр
-for k in range(0,K):
-    averageWait += (K-k) * round(limit_expr[k],5)
+averageWait = 0                                                                                     #Среднее простоя Nпр
+for k in range(0, Queue):
+    averageWait += (Queue - k) * round(limit_expr[k], 5)
 print(" Average wait = ", averageWait)
 
-averageWaitQueue_Time = 0                               #Среднее время в очереди Tоч
-j = 1
-for k in range(K,size-1):
-    print(j," and k=",k)
-    averageWaitQueue_Time += (j/(K*Lyambda_2)) * round(limit_expr[k],5)
-    j+=1
+averageWaitQueue_Time = 0                                                                   #Среднее время в очереди Tоч
+for k in range(1, size):
+    averageWaitQueue_Time += (1/w) * round(limit_expr[k], 5)
+print(" Average wait Queue Time = ", averageWaitQueue_Time)                                                          #&&
 
-print(" Average wait Queue Time = ", averageWaitQueue_Time) #&&
-
-averageServiceTime = relativeThroughput/Lyambda_2       #Среднее время обслуживания Tоб
+averageServiceTime = l                                                                   #Среднее время обслуживания Tоб
 print(" Average Service Time = ", averageServiceTime)
 
-averageSystemTime = averageServiceTime + averageWaitQueue_Time  #Среднее время в системе Tсист
+averageSystemTime = averageServiceTime + averageWaitQueue_Time                            #Среднее время в системе Tсист
 print(" Average System Time = ", averageSystemTime)
-
-print("Formuls Littl:")
-
-T_Maintenance = averageQueue/Lyambda #&&                        #Среднее время в очереди Tоч
-print(" T_wait = ", T_Maintenance) #&&
-
-T_Servise = averageMaintenance / Lyambda                #Среднее время обслуживания Tоб
-print(" T_Service Time = ", T_Servise)
-T_System = averageSystem/Lyambda                            #Среднее время в системе Tсист
-print(" T_System = ", T_System)
-
 
 
 
@@ -251,43 +335,34 @@ averageWait = []
 averageWaitQueue = []
 averageSystemTime = []
 relativeThroughput = []
+absoluteThroughput = []
 averageServiceTime = []
 for t in range (0,time):
-    chanceOfFail = round(variantsPerTime[t][len(limit_expr) - 1], 5)
-    chanceOfService = 1 - chanceOfFail
-    relativeThroughput.append(chanceOfService)
-
-    averageMaintenance.append(0)
-    for k in range(0,K):
-        averageMaintenance[t] += k * round(variantsPerTime[t][k],5)
-    for k in range(K,size):
-        averageMaintenance[t] += K * round(variantsPerTime[t][k],5)
+    chanceOfFail = 0
+    chanceOfService = 1
 
     averageQueue.append(0)
-    for k in range(K+1,size):
-        averageQueue[t] += (k-K) * round(variantsPerTime[t][k],5)
+    for k in range(1, size):
+        averageQueue[t] += k * round(variantsPerTime[t][k], 5)
+
+    absoluteThroughput.append(l - w * averageQueue[t])
+    relativeThroughput.append(absoluteThroughput[t]/u)
+    averageMaintenance.append(absoluteThroughput[t]/u)
 
     averageSystem.append(averageQueue[t] + averageMaintenance[t])
 
     averageWait.append(0)
-    for k in range(0,K):
-        averageWait[t] += (K-k) * round(variantsPerTime[t][k],5)
+    for k in range(0, Queue):
+        averageWait[t] += (Queue - k) * round(variantsPerTime[t][k], 5)
 
     averageWaitQueue.append(0)
-    j = 1
-    for k in range(K,size-1):
-        averageWaitQueue[t] += (j/(K*Lyambda_2)) * round(variantsPerTime[t][k],5)
-        j += 1
+    for k in range(1, size):
+        averageWaitQueue[t] += (1/w) * round(variantsPerTime[t][k], 5)
 
-    averageServiceTime.append(relativeThroughput[t]/Lyambda_2)
+    averageServiceTime.append(l)
     averageSystemTime.append(averageServiceTime[t] + averageWaitQueue[t])
 
-#print(" Strain = ",systemStrain)
-#print(" Strain per channel = ",systemStrainPerChannel)
-#print(" Chance fail = ", chanceOfFail)
-#print(" Chance Service = ", chanceOfService)
-#print(" Relative throughput = ", relativeThroughput)
-#print(" Absolute throughput = ", absoluteThroughput)
+
 print(" Average maintenance = ", averageMaintenance)
 plt.plot(timeForPlot,averageMaintenance)
 plt.xlabel('Time', color='gray')
@@ -323,4 +398,3 @@ plt.plot(timeForPlot,averageSystemTime)
 plt.xlabel('Time', color='gray')
 plt.ylabel('Tsys',color='gray')
 plt.show()
-
