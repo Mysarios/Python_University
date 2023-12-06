@@ -6,12 +6,15 @@ from scipy.stats import *
 from numpy import linalg as LA
 from sympy import *
 
-Queue = 2
+Queue = 7
 Service = 1
 size = Queue + Service + 1
 u = 6.25
 l = 2.12
 w = l * 0.1
+Index_m = []
+NormOf = []
+
 
 inputApplicationFlow = [3, 2, 3, 1, 4, 2, 4, 2, 0, 2, 1, 3, 6, 4, 2, 1, 2,
                         1, 1, 2, 2, 2, 4, 5, 1, 0, 1, 2, 0, 2, 1, 1, 3,
@@ -121,10 +124,14 @@ for i in range(0, size):
     buf = 0
     for j in range(0, size):
         buf += C_symbols[j] * round(eigenvectors[i][j],2) * Symbol('e')**(Tt * round(eigenvalues[j],1))
-    print(buf)
+        print_buf = str(buf)
+        print_buf = print_buf.replace("**", "^")
+    print(print_buf)
+    #print(buf)
 
 #Поиск C коэфы
 Result = 0
+Result_2 = 0
 for solution in linsolve(Static_eval, C_symbols):
     Result = solution
 for c in Result:
@@ -143,8 +150,10 @@ for i in range(0, size):
     buf = 0
     for j in range(0, size):
         arrayFor_K_CH[i] += Result[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
-        buf += round(Result[j] * eigenvectors[i][j],5) * round(math.e,2)**(Tt * round(eigenvalues[j],2))
-    print(buf)
+        buf += round(Result[j] * eigenvectors[i][j],5) * Symbol('e')**(Tt * round(eigenvalues[j],2))
+        print_buf = str(buf)
+        print_buf = print_buf.replace("**","^")
+    print(print_buf)
 print("Results   = ")
 Sym = 0
 limit_expr = []
@@ -157,7 +166,8 @@ print("Check sym =", round(Sym,2))
 last_result = limit_expr
 #for m in range(3,20):
 check_eps = 1
-while check_eps > 0.00001:
+count = 1
+while check_eps > 0.5:
     Queue += 1
     size = Queue + Service + 1
     #Создаем матрицу А
@@ -223,9 +233,9 @@ while check_eps > 0.00001:
         #print(buf[i])
 
     #Поиск C коэфы
-    Result = 0
+    Result_2 = 0
     for solution in linsolve(Static_eval, C_symbols):
-        Result = solution
+        Result_2 = solution
     #for c in Result:
         #print("C coefs  =",round(c,3))
 
@@ -241,8 +251,8 @@ while check_eps > 0.00001:
     for i in range(0, size):
         buf = 0
         for j in range(0, size):
-            arrayFor_K_CH[i] += Result[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
-            buf += round(Result[j] * eigenvectors[i][j],5) * round(math.e,2)**(Tt * round(eigenvalues[j],2))
+            arrayFor_K_CH[i] += Result_2[j] * eigenvectors[i][j] * math.e**(Tt * eigenvalues[j])
+            buf += round(Result_2[j] * eigenvectors[i][j],5) * round(math.e,2)**(Tt * round(eigenvalues[j],2))
         #print(buf)
     print("Results(",Queue,")   = ")
     Sym = 0
@@ -256,9 +266,17 @@ while check_eps > 0.00001:
     for result_index in range(0,len(last_result)):
         check_eps+= round(abs(last_result[result_index] - limit_expr[result_index]),5)
     print(check_eps)
+    NormOf.append(check_eps)
+    Index_m.append(count)
+    count+=1
+    if true:
+        Save_result = last_result.copy()
+
     last_result = limit_expr
 
 #Вывод характеристик
+pt = w/u
+print("p(t) =",pt)
 print("Effectivnes params by t = oo:")
 systemStrain = Lyambda/Lyambda_2
 print(" Strain = ",systemStrain)
@@ -278,7 +296,8 @@ absoluteThroughput = l - w * averageQueue
 print(" Absolute throughput = ", absoluteThroughput)
 relativeThroughput = absoluteThroughput/u
 print(" Relative throughput = ", relativeThroughput)
-
+ChanceOfOut = 1 - relativeThroughput
+print(" Chance of out = ", ChanceOfOut)
 
 averageMaintenance = absoluteThroughput/ u                                        #Среднее заявок под обслуживанием  Nоб
 print(" Average maintenance = ", averageMaintenance)
@@ -308,22 +327,59 @@ print("Effectivnes params by dynamic t :")
 time = 20*5
 timeForPlot = []
 variantsPerTime = [0] * time
+variantsPerTime_2 = [0] * time
+
+print("size Res =", len(Result))
+print("size Res2 =", len(Result_2))
 for t in range (0,time):
     timeForPlot.append(t/5)
-    variantsPerTime[t] = [0] * len(arrayFor_K_CH)
+    variantsPerTime_2[t] = [0] * len(arrayFor_K_CH)
     for p in range(0,len(arrayFor_K_CH)):
         for i in range(0, len(arrayFor_K_CH)):
+            variantsPerTime_2[t][p] += Result_2[i] * eigenvectors[p][i] * math.e ** (t / 5 * eigenvalues[i])
+
+for t in range (0,time):
+    variantsPerTime[t] = [0] * len(arrayFor_K_CH)
+    for p in range(0,len(arrayFor_K_CH)-1):
+        for i in range(0, len(arrayFor_K_CH)-1):
             variantsPerTime[t][p] += Result[i] * eigenvectors[p][i] * math.e**(t/5 * eigenvalues[i])
 
 
 for p in range(0,len(arrayFor_K_CH)):
     yForGraph = []
     for t in range(0, time):
-        yForGraph.append(variantsPerTime[t][p])
+        yForGraph.append(variantsPerTime_2[t][p])
     plt.plot(timeForPlot,yForGraph)
+
 plt.xlabel('Time', color='gray')
 plt.ylabel('P(t)',color='gray')
 plt.legend(['P0','P1','P2','P3','P4','P5','P6','P7'])
+plt.show()
+
+timeForPlot_2 = []
+print(variantsPerTime)
+print(variantsPerTime_2)
+y_for_graph = []
+for t in range(10, time):
+    m_1 = 0
+    m_2 = 0
+    timeForPlot_2.append(t / 5)
+    for p in range(0,len(arrayFor_K_CH)-1):
+        m_1 += variantsPerTime[t][p]
+        m_2 += variantsPerTime_2[t][p]
+    y_for_graph.append(abs(m_1-m_2))
+
+plt.plot(timeForPlot_2,y_for_graph)
+
+plt.xlabel('Time', color='gray')
+plt.ylabel('Norm',color='gray')
+plt.legend()
+plt.show()
+
+plt.plot(Index_m,NormOf)
+plt.xlabel('m', color='gray')
+plt.ylabel('Norm',color='gray')
+plt.plot([1,8],[0.00001,0.00001])
 plt.show()
 
 
@@ -337,6 +393,7 @@ averageSystemTime = []
 relativeThroughput = []
 absoluteThroughput = []
 averageServiceTime = []
+ChanceOfOut_array = []
 for t in range (0,time):
     chanceOfFail = 0
     chanceOfService = 1
@@ -348,6 +405,7 @@ for t in range (0,time):
     absoluteThroughput.append(l - w * averageQueue[t])
     relativeThroughput.append(absoluteThroughput[t]/u)
     averageMaintenance.append(absoluteThroughput[t]/u)
+    ChanceOfOut_array.append(1 - relativeThroughput[t])
 
     averageSystem.append(averageQueue[t] + averageMaintenance[t])
 
@@ -397,4 +455,9 @@ print(" Average System Time = ", averageSystemTime)
 plt.plot(timeForPlot,averageSystemTime)
 plt.xlabel('Time', color='gray')
 plt.ylabel('Tsys',color='gray')
+plt.show()
+print(" Chance out = ", ChanceOfOut)
+plt.plot(timeForPlot,ChanceOfOut_array)
+plt.xlabel('Time', color='gray')
+plt.ylabel('Chance out',color='gray')
 plt.show()
