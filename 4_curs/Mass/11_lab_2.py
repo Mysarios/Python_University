@@ -7,7 +7,7 @@ from numpy import linalg as LA
 from sympy import *
 
 Queue = 5
-Service = 1
+Service = 2
 size = Queue + 1 + 1
 u = 6.25
 l = 2.12
@@ -180,48 +180,62 @@ for i in range (0,len(arrayFor_K_CH)):
     print(" Limit ",i," = ",round(limit_expr[i],9))
 print("Check sym =", round(Sym,2))
 
+
+print("Result by formuls-------------------------")
+fi = l/(u*2)
+
+P_0 = (1-fi)/(1-fi**2)
+print("P_0 =",P_0)
+
+for i in range(1,size):
+    buf =P_0*(fi**i)
+    print("P_",i," =",buf)
 #Вывод характеристик
-print("Effectivnes params by t = oo:")
+print("Effectivnes params by t = oo:---------------------")
 systemStrain = Lyambda/Lyambda_2
 print(" Strain = ",systemStrain)
 systemStrainPerChannel = systemStrain/2
 print(" Strain per channel = ",systemStrainPerChannel)
-chanceOfFail = 0
+chanceOfFail = (1-fi)/(1-fi**(Service+2))*(fi**(Service+1))
 print(" Chance fail = ", chanceOfFail)
-chanceOfService = 1
+chanceOfService = 1 - chanceOfFail
 print(" Chance Service = ", chanceOfService)
 
-averageQueue = 0                                                                          #Среднее заявок  в очереди Nоч
-for k in range(1, size):
-    averageQueue += k * round(limit_expr[k], 5)
-print(" Average queue = ", averageQueue)
-
-absoluteThroughput = l - w * averageQueue
-print(" Absolute throughput = ", absoluteThroughput)
-relativeThroughput = absoluteThroughput/u
-print(" Relative throughput = ", relativeThroughput)
 
 
-averageMaintenance = absoluteThroughput/ u                                        #Среднее заявок под обслуживанием  Nоб
-print(" Average maintenance = ", averageMaintenance)
+relativeThroughput = (1-fi**(Service+1))/(1-fi**(Service+2))
+print(" Absolute throughput = ", relativeThroughput)
+absoluteThroughput = l*relativeThroughput
+print(" Relative throughput = ", absoluteThroughput)
 
-averageSystem = averageQueue + averageMaintenance                                       #Среднее заявок в системе  Nсист
+
+
+averageServise = fi * relativeThroughput                                     #Среднее заявок под обслуживанием  Nоб
+print(" Average Servise= ", averageServise)
+Fi_2 = (fi**2)
+M_1 = (Service+1)
+M_2 = (Service+2)
+averageQueue = Fi_2*(1 - (fi**Service) *(M_1 - Service*fi) )/((1 - fi)*( 1 - fi**M_2) )       #Среднее заявок  в очереди Nоч
+print(" Average queue  = ", averageQueue)
+
+averageSystem = averageQueue + averageServise                                       #Среднее заявок в системе  Nсист
 print(" Average system = ", averageSystem)
+
+averageChannels =  absoluteThroughput/u                                     #Среднее число занятых каналов
+print(" average Channels  = ", averageChannels)
 
 averageWait = 0                                                                                     #Среднее простоя Nпр
 for k in range(0, Queue):
     averageWait += (Queue - k) * round(limit_expr[k], 5)
 print(" Average wait = ", averageWait)
 
-averageWaitQueue_Time = 0                                                                   #Среднее время в очереди Tоч
-for k in range(1, size):
-    averageWaitQueue_Time += (1/w) * round(limit_expr[k], 5)
+averageWaitQueue_Time = averageQueue/l                                                              #Среднее время в очереди Tоч
 print(" Average wait Queue Time = ", averageWaitQueue_Time)                                                          #&&
 
-averageServiceTime = l                                                                   #Среднее время обслуживания Tоб
+averageServiceTime = averageServise / l                                                                #Среднее время обслуживания Tоб
 print(" Average Service Time = ", averageServiceTime)
 
-averageSystemTime = averageServiceTime + averageWaitQueue_Time                            #Среднее время в системе Tсист
+averageSystemTime = averageSystem/l                            #Среднее время в системе Tсист
 print(" Average System Time = ", averageSystemTime)
 
 
@@ -250,7 +264,7 @@ plt.show()
 
 
 
-averageMaintenance = []
+averageServise = []
 averageQueue = []
 averageSystem = []
 averageWait = []
@@ -259,34 +273,30 @@ averageSystemTime = []
 relativeThroughput = []
 absoluteThroughput = []
 averageServiceTime = []
+averageChannelsTime = []
 for t in range (0,time):
-    chanceOfFail = 0
-    chanceOfService = 1
+    print(t)
+    chanceOfFail = variantsPerTime[t][len(arrayFor_K_CH)-1]
+    chanceOfService = 1 - chanceOfFail
 
-    averageQueue.append(0)
-    for k in range(1, size):
-        averageQueue[t] += k * round(variantsPerTime[t][k], 5)
-
-    absoluteThroughput.append(l - w * averageQueue[t])
-    relativeThroughput.append(absoluteThroughput[t]/u)
-    averageMaintenance.append(absoluteThroughput[t]/u)
-
-    averageSystem.append(averageQueue[t] + averageMaintenance[t])
-
-    averageWait.append(0)
-    for k in range(0, Queue):
-        averageWait[t] += (Queue - k) * round(variantsPerTime[t][k], 5)
-
-    averageWaitQueue.append(0)
-    for k in range(1, size):
-        averageWaitQueue[t] += (1/w) * round(variantsPerTime[t][k], 5)
-
-    averageServiceTime.append(l)
-    averageSystemTime.append(averageServiceTime[t] + averageWaitQueue[t])
+    averageQueue.append(Fi_2*(1 - (fi**Service) *(M_1 - Service*fi) )/((1 - fi)*( 1 - fi**M_2) ) )
 
 
-print(" Average maintenance = ", averageMaintenance)
-plt.plot(timeForPlot,averageMaintenance)
+
+    relativeThroughput.append(chanceOfService)
+    absoluteThroughput.append(l*chanceOfService)
+
+    averageServise.append(1 - variantsPerTime[t][0])
+    averageSystem.append(averageQueue[t] + averageServise[t])
+
+
+    averageWaitQueue.append(averageQueue[t]/l)
+    averageServiceTime.append(averageServise[t]/l)
+    averageSystemTime.append(averageSystem[t]/l)
+
+
+print(" Average maintenance = ", averageServise)
+plt.plot(timeForPlot, averageServise)
 plt.xlabel('Time', color='gray')
 plt.ylabel('Nobs',color='gray')
 plt.show()
@@ -300,11 +310,11 @@ plt.plot(timeForPlot,averageSystem)
 plt.xlabel('Time', color='gray')
 plt.ylabel('Nsys',color='gray')
 plt.show()
-print(" Average wait = ", averageWait)
-plt.plot(timeForPlot,averageWait)
-plt.xlabel('Time', color='gray')
-plt.ylabel('Nwait',color='gray')
-plt.show()
+#print(" Average wait = ", averageWait)
+#plt.plot(timeForPlot,averageWait)
+#plt.xlabel('Time', color='gray')
+#plt.ylabel('Nwait',color='gray')
+#plt.show()
 print(" Average wait Queue = ", averageWaitQueue)
 plt.plot(timeForPlot,averageWaitQueue)
 plt.xlabel('Time', color='gray')
