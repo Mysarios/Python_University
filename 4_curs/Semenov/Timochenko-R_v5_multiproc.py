@@ -14,8 +14,8 @@ Change = 3
 Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 eps = 0.0005
-N_x = 1
-N_y = 1
+N_x = 3
+N_y = 3
 N = N_x * N_y
 # graph points
 Size = 10
@@ -1126,6 +1126,8 @@ def Nuton_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function,
         t = 100
     if N==4:
         t = 360
+    if N == 9:
+        t = 7200
     p1.join(timeout= t)
     print("p1 - join)")
     p4.join(timeout= 1)
@@ -1166,7 +1168,7 @@ def Nuton_Loop(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Function,
     #while (Miz < 1):
     #for Q_now in range(1,3):
     check = 0
-    while (Q_now < 5):
+    while (Q_now < 4):
         print("Q_now = ", Q_now)
         print("Start integrate 7")
         Es[7] = (-2) * (Q_now * W_Function_get)
