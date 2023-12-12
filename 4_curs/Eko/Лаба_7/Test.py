@@ -1,7 +1,15 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from numba import njit
 import plotly.graph_objects as go
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+from plotly.offline import init_notebook_mode
+#import kaleido
+import plotly
+#from tqdm.notebook import tqdm
+
 # Входные параметры
 # Расчетная область
 # Область определения по x
@@ -11,7 +19,7 @@ ymin, ymax, dy = 0., 9000., 30.
 # Область определения по z
 zmin, zmax, dz = 0., 540., 30.
 # Время исследования
-t1, t2, dt = 100, 3700, 10
+t1, t2, dt = 100, 1000, 10
 
 # Сетка по x
 x = np.arange(xmin, xmax, dx)
@@ -20,7 +28,7 @@ y = np.arange(ymin, ymax, dy)
 nx = len(x)
 ny = len(y)
 # Высота источника
-hs = 100.
+hs = 30.
 # Координаты источника
 xss, yss, zss = 0, 0, hs
 # Средние скорости ветра, м/с
@@ -76,6 +84,7 @@ Ccalc = np.zeros((n,n))
 CLcalc = np.zeros((n,n,n))
 
 
+@njit
 def calpuff():
     n = 360
     # global
@@ -93,6 +102,7 @@ def calpuff():
     #    j = 0
     #    tp = 1200
     while True:
+        #  for t in tqdm(range(1, t2)):
         t += 1
         # Момент запуска источника
         if t == t1:
@@ -198,3 +208,75 @@ def calpuff():
         if t == 3700:
             break
     return Cc, CLagrange  # , Ccc\n
+
+Ccalc, CLcalc = calpuff()
+
+xa = np.arange(xmin+0.001, xmax+0.001, dx)
+Ca = np.zeros((n,n))
+for i in range(1, nx):
+    for l in range(ny):
+#        Ca[i,l] = (Mm/(2*math.pi*x[i]*np.sqrt(K2*K3))
+ #             * np.exp(-U*hs**2/(4*K3*x[i]) - U*y[l]**2/(4*K2*x[i]))
+ #               )
+        Ca[i,l] = (Mm/(4*math.pi*xa[i]*np.sqrt(K2*K3))
+                 * np.exp(-U*y[l]**2/(4*K2*xa[i]))
+                * (np.exp(-U*(hs)**2 / (4*K3*xa[i]))+np.exp(-U*(hs)**2 / (4*K3*xa[i])))
+      #         * np.exp(-U*y[l]**2/(4*K2*xa[i]))
+     #         * np.exp(- U*hs**2/(4*K3*xa[i]))
+                )
+
+CLsum = np.zeros((n,n))
+for i in range(nx):
+    for j in range(ny):
+        CLsum[i,j] = CLcalc[i,j,240:359].mean()
+
+
+def mv_graphics_stat(graphs_visible, my_title,
+                     mv_title_x, mv_title_y,
+                     file_name,
+                     xaxis_min, xaxis_max,
+                     mv_legend_x, mv_legend_anchor):
+    fig = go.Figure(data=graphs_visible,
+                    layout_xaxis_range=[xaxis_min,
+                                        xaxis_max])
+    fig.layout.font.family = 'Times'
+    fig.layout.font.size = 14
+
+    fig.update_layout(xaxis_title=mv_title_x,
+                      yaxis_title=mv_title_y,
+                      legend=dict(x=mv_legend_x,
+                                  xanchor=
+                                  mv_legend_anchor),
+                      autosize=False,
+                      width=600, height=400)
+    fig.update_layout(margin=
+                      dict(l=25, r=0, t=0, b=25))
+    fig.write_image(file_name + ".png")
+    fig.show()
+
+
+graphs_visible = [go.Scatter(visible=True, x=x, y=CLsum[:, 0],
+                             name='Расчет',
+                             line_dash='dot', line_color='#6e0cb3'),
+                  go.Scatter(visible=True, x=xa, y=Ca[:, 0],
+                             name='Аналитическое решение',
+                             line_dash='solid', line_color='#6e0cb3'),
+
+                  ]
+
+my_title = "Приземные концентрации"
+mv_title_x = '$$x, м$$'
+mv_title_y = '$$c^{\prime}, мг/м^3$$'
+
+file_name = "analit_calc"
+xaxis_min = 0.
+xaxis_max = 9000.
+mv_legend_x = 1.
+mv_legend_anchor = "right"
+
+mv_graphics_stat(graphs_visible, my_title,
+                 mv_title_x, mv_title_y,
+                 file_name,
+                 xaxis_min, xaxis_max,
+                 mv_legend_x, mv_legend_anchor)
+
