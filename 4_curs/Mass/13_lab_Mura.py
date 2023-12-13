@@ -111,9 +111,13 @@ for el_p in p_matr:
 
 print("\nВероятности состояний СМО в стационарном режиме в аналитическом виде")
 print("Из динамического режима  Из системы уравнений")
+Maint =4
 i = 0
 Sym_1 =0
 Sym_2 =0
+p_end =[0]*Maint
+
+p_end[0]= p_stach[0]+p_stach[len(p_stach)-1]
 for i in range(len(p_stach)):
     for c in c_vector:
         p_stach[i] = p_stach[i].subs(c, c_vector[c])
@@ -121,10 +125,20 @@ for i in range(len(p_stach)):
     Sym_1+=p_stach[i].round(10)
     Sym_2+=p_uravn[p[i]].round(10)
     i += 1
-print("Check sym = ",Sym_1,"and from system =",Sym_2)
+
+print("RESULT!_____________________________")
+print(" Limit ", 0, " = ", p_stach[0].round(10))
+Sym_1=p_end[0]
+for i in range(1,Maint):
+    for j in range(0,Maint):
+        p_end[i]+=p_stach[(i-1)*Maint+j+1]
+    Sym_1+=p_end[i]
+    print(" Limit ", i, " = ", p_end[i].round(10))
+
+print("Check sym = ",Sym_1)
 print("\nВыражения для характеристик эффективности СМО в стационарном режиме")
 print("Вероятность отказа")
-charakt = p_stach[-1]
+charakt = p_end[-1]
 print("P_отк(t) = P_(k+l) =", charakt)
 print("Вероятность обслуживания")
 print("P_обсл(t) = 1 - P_отк(t) =", 1 - charakt)
