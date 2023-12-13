@@ -40,7 +40,7 @@ for i in range(0, z_max+30,30):
     Z_mesh.append(i)
 
 start_t = 100
-end_t = 1000
+end_t = 3300
 step_t = 10
 
 high = 0
@@ -55,8 +55,8 @@ Stranght = 100
 Mm = Stranght * 1000
 
 middle_U = 3
-middle_W = 0.003
-middle_V = 0.0003
+middle_W = 0.000003
+middle_V = 0.000003
 
 coef_turb_x = 1000
 coef_turb_y = 10
@@ -232,8 +232,14 @@ def main_func():
     plt.plot(x_for_graph_2, result_concentration_x)
     plt.show()
 
-    plt.plot(x_for_graph_2, result_concentration_x)
-    xa = np.arange(0 + 0.001, 9000 + 0.001, 30)
+    y_r = []
+    y_a = []
+    x_g = []
+    for i in range(0,len(x_for_graph_2)-40):
+        y_a.append(result_concentration_x[i])
+        x_g.append(x_for_graph_2[i])
+    plt.plot(x_g, y_a)
+    xa = np.arange(0, 9000, 30)
     nx = len(xa)
     Ca = []
     for i in range(0, nx):
@@ -244,8 +250,8 @@ def main_func():
                    ))
 
 
-    xa = np.arange(0 + 0.001, x_max + 0.001, 30)
-    y = np.arange(0 + 0.001, y_max + 0.001, 30)
+    xa = np.arange(0, x_max, 30)
+    y = np.arange(0, y_max, 30)
     ny=nx
     Ca = np.zeros((n, n))
     Cres = np.zeros((n))
@@ -262,7 +268,9 @@ def main_func():
                         )
         for l in range(ny):
             Cres[i] +=Ca[i, l]/100
-    plt.plot(xa, Cres)
+    for i in range(0,len(x_for_graph_2)-40):
+        y_r.append(Cres[i])
+    plt.plot(x_g, y_r)
 
     plt.show()
 main_func()
