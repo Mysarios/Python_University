@@ -20,7 +20,9 @@ x_point = 0
 y_point = 0
 z_point = 30
 
-i=0.1
+hs = z_point
+
+
 
 x_max = 9000
 y_max = 9000
@@ -56,9 +58,15 @@ middle_U = 3
 middle_W = 0.003
 middle_V = 0.0003
 
-coef_turb_x = 100
-coef_turb_y = 100
+coef_turb_x = 1000
+coef_turb_y = 10
 coef_turb_z = 10
+
+i=0.1
+K1, K2 = 10., 1000.
+i3 = 0.1
+K3 = 10.
+n = 300
 # functions
 
 def get_Pul(i,Var):
@@ -146,7 +154,12 @@ def get_concentration_x(Buffer,x_arr,y_arr,z_arr,count_clubs,sigm_1,sigm_2,sigm_
                 #print("club =", club)
                 Buffer[i] += (Mm * step_t / (2 * math.pi * sigm_1[club] * sigm_2[club]))\
                         * math.exp(-((x[i] - x_arr[club]) ** 2) / (2 * sigm_1[club]**2) - ((y[j] - (y_arr[club])) ** 2) / (2 * sigm_2[club]**2)) \
-                             * (2/(( (2*math.pi)**(1/2))*sigm_3[club])) * math.exp(((- 30) ** 2) / (2 * sigm_3[club]**2))
+                             * (2/(( (2*math.pi)**(1/2))*sigm_3[club]**2)) * math.exp(((- 30) ** 2) / (2 * sigm_3[club]**2))
+                #Buffer[i] += ((2 * Mm * step_t / ((2 * math.pi) ** 1.5 * np.sqrt(sigm_1[club] * sigm_2[club] * sigm_3[club])))
+                #               * np.exp(-(x[i] - x_arr[club]) ** 2 / (2 * sigm_1[club]**2))
+                #               * np.exp(-(y[j] - y_arr[club]) ** 2 / (2 * sigm_2[club]**2))
+                #               * np.exp(-(30) ** 2 / (2 * sigm_3[club]**2)))
+
     for ind in range(0, 300):
         Buffer[ind] /= count_clubs
                        #* math.exp(( 0** 2)/ (2 * sigm_3[club])))
@@ -219,8 +232,38 @@ def main_func():
     plt.plot(x_for_graph_2, result_concentration_x)
     plt.show()
 
-    xm = 5
-    print(xm)
+    plt.plot(x_for_graph_2, result_concentration_x)
+    xa = np.arange(0 + 0.001, 9000 + 0.001, 30)
+    nx = len(xa)
+    Ca = []
+    for i in range(0, nx):
+        Ca.append((Mm / (4 * math.pi * xa[i] * np.sqrt(coef_turb_x * coef_turb_y))
+                   * np.exp(0 / (4 * coef_turb_x * xa[i]))
+                   * (np.exp(-middle_U * (30) ** 2 / (4 * coef_turb_y * xa[i])) + np.exp(
+                    -middle_U * (30) ** 2 / (4 * coef_turb_y * xa[i])))
+                   ))
 
-    Cm = (Mm/(30*30))
+
+    xa = np.arange(0 + 0.001, x_max + 0.001, 30)
+    y = np.arange(0 + 0.001, y_max + 0.001, 30)
+    ny=nx
+    Ca = np.zeros((n, n))
+    Cres = np.zeros((n))
+    for i in range(1, nx):
+        for l in range(ny):
+            #        Ca[i,l] = (Mm/(2*math.pi*x[i]*np.sqrt(K2*K3))
+            #             * np.exp(-U*hs**2/(4*K3*x[i]) - U*y[l]**2/(4*K2*x[i]))
+            #               )
+            Ca[i, l] = (Mm / (4 * math.pi * xa[i] * np.sqrt(K2 * K3))
+                        * np.exp(-middle_U * y[l] ** 2 / (4 * K2 * xa[i]))
+                        * (np.exp(-middle_U * (hs) ** 2 / (4 * K3 * xa[i])) + np.exp(-middle_U * (hs) ** 2 / (4 * K3 * xa[i])))
+                        #         * np.exp(-U*y[l]**2/(4*K2*xa[i]))
+                        #         * np.exp(- U*hs**2/(4*K3*xa[i]))
+                        )
+        for l in range(ny):
+            Cres[i] +=Ca[i, l]/100
+    plt.plot(xa, Cres)
+
+    plt.show()
 main_func()
+
