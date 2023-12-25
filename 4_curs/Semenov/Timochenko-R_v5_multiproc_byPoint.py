@@ -14,20 +14,20 @@ Change = 3
 Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 eps = 0.0005
-N_x = 1
-N_y = 1
+N_x = 4
+N_y = 4
 N = N_x * N_y
-q_find = 3.14
+q_find = 2.14
 # graph points
 Size = 20
 Size_visualization = 10
 # Data about object main
 H_coef = 1
-h = 0.09 * H_coef
-A_lenght_x = 60 * h
-B_lenght_y = 60 * h
-R_1_x = 225 * h
-R_2_y = 225 * h
+h=0.00022*H_coef
+A_lenght_x = 0.2
+B_lenght_y = 0.2
+R_1_x = 5
+R_2_y = 3.33
 A = 1
 B = 1
 K_x = 1 / R_1_x
@@ -1460,6 +1460,10 @@ def Nuton_byPoint(w_coefs,Es_Get,W_Function_get,U_function, V_function, W_Functi
         t = 10
     if N==4:
         t = 220
+    if N == 9:
+        t = 7200
+    if N==16:
+        t = 28400
     p1.join(timeout= t)
     print("p1 - join)")
     p4.join(timeout= 1)
