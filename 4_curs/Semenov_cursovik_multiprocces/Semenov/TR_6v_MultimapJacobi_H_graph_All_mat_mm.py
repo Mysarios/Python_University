@@ -11,7 +11,7 @@ import time
 import multiprocessing as mp
 import mpmath as vpa
 
-
+#m to mm
 # Data for programm
 One_point = 0
 Multi = 1
@@ -20,12 +20,12 @@ Change = 3
 Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 Start_w0 = 0.0035
-eps = 0.0005
-N_x = 3
-N_y = 3
+eps = 0.5
+N_x = 2
+N_y = 2
 N = N_x * N_y
-q_find = 0.03
-Q_Count_Steps = 65
+q_find = 15
+Q_Count_Steps = 50
 Q_step = q_find/Q_Count_Steps
 Count_Es = 12
 # graph points
@@ -33,18 +33,18 @@ Size = 30
 Size_visualization = 10
 # Data about object main
 H_coef = 1
-h = 0.00022 * H_coef
-A_lenght_x = 0.2
-B_lenght_y = 0.2
-R_1_x = 5
-R_2_y = 3.33
+h = 0.22 * H_coef  #mm
+A_lenght_x = 200
+B_lenght_y = 200
+R_1_x = 5000
+R_2_y = 3330
 A = 1
 B = 1
 K_x = 1 / R_1_x
 K_y = 1 / R_2_y
 z = 0
 # Data material
-V = 0.2 * 0.2 * 0.00022  # m^3
+V = 200 * 200 * 0.22  # m^3
 P1 = 1500
 P2 = 7800
 P3 = 1190
@@ -100,15 +100,15 @@ if Change == 2:
     Sigma_t = 75
 if Change == 3:
     # Still:
-    E1 = 2.1 * (10 ** 5)
+    E1 = 210000000
     E2 = E1
     nu_12 = 0.3
     nu_21 = nu_12
-    G12 = 0.807*(10**5)
+    G12 = 80700000
     G13 = G12
     G23 = G12
     Density = 7800
-    Sigma_t = 265
+    Sigma_t = 265000
 
 # Settings to integral
 Start_integral = 0
@@ -1652,6 +1652,7 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
     Q_now = Q_step
 
     Miz = []
+    color = ['-.b','-b','-.r','-r','-.m','-m']
     q_for_graph = []
     w_for_graph = []
     q_for_graph_4 = []
@@ -1673,7 +1674,7 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
         w_for_graph_4[i].append(0)
 
     W_Result = [0] * (1000)
-    W_Result[0] = [0.000001] * N*5
+    W_Result[0] = [0.1] * N*5
 
     Q_function = q_function(Q_now,0)
     Es_Get[7] = (-2) * (Q_function * W_Function_get)
@@ -1764,8 +1765,8 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
             Miz[H_value - 1][0] = Q_now - Q_step * H_value
             Miz[H_value - 1][1] = Miz_now
 
-        plt.plot(w_for_graph[H_value-1], q_for_graph[H_value-1],'-')
-        plt.plot(w_for_graph_4[H_value-1], q_for_graph_4[H_value-1],'-.')
+        plt.plot(w_for_graph[H_value-1], q_for_graph[H_value-1],color[H_value*2-1])
+        plt.plot(w_for_graph_4[H_value-1], q_for_graph_4[H_value-1],color[(H_value-1)*2])
     #Ww = [0] * 2
     #Qq = [0] * 2
     #Ww.append(w_for_graph[0])
@@ -1776,6 +1777,10 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
         print("When H =",h*(i + 1 )," Miz = ",Miz[i][1]," when q =",Miz[i][0]," in point x,y =(",Miz[i][2],",",Miz[i][3],") !")
     if Change == 3:
         plt.legend(['Still a in l/2','Still a in l/4','Still 2*a in l/2','Still a in l/4','Still 3*a in l/2','Still 3*a in l/4'])
+
+    plt.title("График зависимости W-q")
+    plt.xlabel("W [мм]")
+    plt.ylabel("q [кПа]")
     plt.show()
     return W_Result
 def Nuton_byPoint(Es_Get,W_Function_get):

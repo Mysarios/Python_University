@@ -16,16 +16,16 @@ import mpmath as vpa
 One_point = 0
 Multi = 1
 A_Numeric = 1
-Change = 3
+Change = 2
 Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 Start_w0 = 0.0035
 eps = 0.0005
-N_x = 3
-N_y = 3
+N_x = 2
+N_y = 2
 N = N_x * N_y
-q_find = 0.03
-Q_Count_Steps = 65
+q_find = 0.01
+Q_Count_Steps = 15
 Q_step = q_find/Q_Count_Steps
 Count_Es = 12
 # graph points
@@ -306,7 +306,6 @@ def get_diff_2_Ja(data):
     spend_time = time.time() - timer
     #print("Result[", i, " By time = ", spend_time)
     return Result
-
 def get_diff_2arg(fun,queue,symbol,i,j):
     timer = time.time()
     print("start diff =",i,",",j)
@@ -614,20 +613,16 @@ def Draw_3d_Sigmas_main(Function, Values_Result, Type_Sigmas, U_function, V_func
     Max_Sigmas_values = [0]*3
 
     if Change == 1:
-        Sigma_x_Function = (Get_Sigma_x_Orto(U_function,V_function,W_Function,E1,nu_12, nu_21,z_val))
-        Sigma_y_Function = (Get_Sigma_y_Orto(U_function,V_function,W_Function,E2,nu_12, nu_21,z_val))
-        Tay_xy_Function = (Get_Sigma_tay_Orto(U_function,V_function,W_Function,G12,z_val))
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
     if Change == 2:
-        Sigma_x_Function = Get_Sigma_x_Izo(U_function, V_function, W_Function, PsiX_function, PsiY_function, E1, nu_12,z_val)
-        Sigma_y_Function = Get_Sigma_y_Izo(U_function, V_function, W_Function, PsiX_function, PsiY_function, E1, nu_12,z_val)
-        Tay_xy_Function = Get_Sigma_tay_Izo(U_function, V_function, W_Function, PsiX_function, PsiY_function, E1, nu_12,z_val)
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
     if Change == 3:
-            #Sigma_x, Sigma_y, Sigma_tay
-            #Sigma_x_Function = (Get_Sigma_x_Izo(U_function, V_function, W_Function, PsiX_function, PsiY_function, E1_Still, nu_Still, z_val))
             Sigma_x_Function = Sigma_x.copy()
-            #Sigma_y_Function = (Get_Sigma_y_Izo(U_function, V_function, W_Function, PsiX_function, PsiY_function, E1_Still, nu_Still, z_val))
             Sigma_y_Function = Sigma_y.copy()
-            #Tay_xy_Function = (Get_Sigma_tay_Izo(U_function, V_function, W_Function, PsiX_function, PsiY_function, E1_Still, nu_Still, z_val))
             Tay_xy_Function = Sigma_tay.copy()
 
     for i in range(N+1):
@@ -659,9 +654,9 @@ def Draw_3d_Sigmas_main(Function, Values_Result, Type_Sigmas, U_function, V_func
 
     #plt.show()
     print("Max value Miz= ",Max_Value)
-    Sigma_Tay_krit = 150
-    if Change ==3:
-        Sigma_Tay_krit = 340
+    #Sigma_Tay_krit = 150
+    #if Change ==3:
+        #Sigma_Tay_krit = 340
 
     return Max_Value/Sigma_Tay_krit
 def get_Mizz(W_val, U_val,V_val, PsiX_val,PsiY_val,Sigma_x,Sigma_y,Sigma_tay):
@@ -686,12 +681,19 @@ def get_Mizz(W_val, U_val,V_val, PsiX_val,PsiY_val,Sigma_x,Sigma_y,Sigma_tay):
 
     if Change == 1:
         print("Change == 1")
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
     if Change == 2:
         print("Change == 2")
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
     if Change == 3:
-            Sigma_x_Function = Sigma_x.copy()
-            Sigma_y_Function = Sigma_y.copy()
-            Tay_xy_Function = Sigma_tay.copy()
+        print("Change == 3")
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
 
     #timer = time.time()
     for i in range(N+1):
@@ -763,12 +765,19 @@ def get_Mizz_2(W_val, U_val,V_val, PsiX_val,PsiY_val,Sigma_x,Sigma_y,Sigma_tay):
 
     if Change == 1:
         print("Change == 1")
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
     if Change == 2:
         print("Change == 2")
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
     if Change == 3:
-            Sigma_x_Function = Sigma_x.copy()
-            Sigma_y_Function = Sigma_y.copy()
-            Tay_xy_Function = Sigma_tay.copy()
+        print("Change == 2")
+        Sigma_x_Function = Sigma_x.copy()
+        Sigma_y_Function = Sigma_y.copy()
+        Tay_xy_Function = Sigma_tay.copy()
 
     #timer = time.time()
     for i in range(N+1):
@@ -1774,6 +1783,10 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
     #Qq.append(q_for_graph[len(q_for_graph) - 1])
     for i in range(0,3):
         print("When H =",h*(i + 1 )," Miz = ",Miz[i][1]," when q =",Miz[i][0]," in point x,y =(",Miz[i][2],",",Miz[i][3],") !")
+    if Change == 1:
+        plt.legend(['T300/976 a in l/2','T300/976 a in l/4','T300/976 2*a in l/2','T300/976 a in l/4','T300/976 3*a in l/2','T300/976 3*a in l/4'])
+    if Change == 2:
+        plt.legend(['Org_glass a in l/2','Org_glass a in l/4','Org_glass 2*a in l/2','Org_glass a in l/4','Org_glass 3*a in l/2','Org_glass 3*a in l/4'])
     if Change == 3:
         plt.legend(['Still a in l/2','Still a in l/4','Still 2*a in l/2','Still a in l/4','Still 3*a in l/2','Still 3*a in l/4'])
     plt.show()
@@ -2007,11 +2020,11 @@ if __name__ == '__main__':
 
     #z_val = 0
     type_z = 1
-    if Change == 1:
+    if Change == 0:
         Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1, nu_12, nu_21,z_val, PsiX_function_buf, PsiY_function_buf)
         Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2, nu_12, nu_21, z_val, PsiX_function_buf, PsiY_function_buf)
         Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G12, z_val, PsiX_function_buf, PsiY_function_buf)
-    if Change == 2 or Change == 3:
+    if Change == 2 or Change == 3 or Change == 1:
         if type_z == 1:
             Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12, z_val, F_EX_z, F_EY_z, KSI_1, KSI_2)
             Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12, z_val, F_EX_z, F_EY_z, KSI_1, KSI_2)
@@ -2027,7 +2040,7 @@ if __name__ == '__main__':
     integral_type = 1
     part = 1
     if integral_type == 1:
-        if Change == 1:
+        if Change == 0:
             Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_function, E1, nu_12, nu_21) * e_x(U_function, V_function, W_function)
             Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_function, E1, nu_12, nu_21) * e_y(U_function, V_function, W_function)
             Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_function, G12) * y_xy(U_function, V_function,W_function)
@@ -2036,7 +2049,7 @@ if __name__ == '__main__':
             Es_main[4] = 2 * M_xy_Orto(W_function, G12) * ksi_12(PsiX_function, PsiY_function)
             Es_main[5] = Q_x(PsiX_function, PsiY_function, G13, W_function, U_function)
             Es_main[6] = Q_y(PsiX_function, PsiY_function, G23, W_function, U_function)
-        if Change == 2 or Change == 3:
+        if Change == 2 or Change == 3 or Change == 1:
             if part ==1:
                 NX_I_part = N_x_Izo_part(E1, nu_12, nu_21, F_EX, F_EY)
                 NY_I_part = N_y_Izo_part(E1, nu_12, nu_21, F_EX, F_EY)
