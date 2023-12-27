@@ -16,16 +16,16 @@ import mpmath as vpa
 One_point = 0
 Multi = 1
 A_Numeric = 1
-Change = 3
+Change = 2
 Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 Start_w0 = 0.0035
-eps = 0.5
+eps = 0.05
 N_x = 2
 N_y = 2
 N = N_x * N_y
-q_find = 15
-Q_Count_Steps = 50
+q_find = 0.6/3
+Q_Count_Steps = 30
 Q_step = q_find/Q_Count_Steps
 Count_Es = 12
 # graph points
@@ -89,15 +89,15 @@ if Change == 1:
 if Change == 2:
     # Izo:
     # Org_Glass_1:
-    E1 = 0.03 * (10 ** 5)
+    E1 = 3000000
     E2 = E1
     nu_12 = 0.35
     nu_21 = nu_12
-    G12 = 0.012 * (10 ** 5)
+    G12 = 1200000
     G13 = G12
     G23 = G12
     Density = 1190
-    Sigma_t = 75
+    Sigma_t = 75000
 if Change == 3:
     # Still:
     E1 = 210000000
@@ -1775,8 +1775,15 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
     #Qq.append(q_for_graph[len(q_for_graph) - 1])
     for i in range(0,3):
         print("When H =",h*(i + 1 )," Miz = ",Miz[i][1]," when q =",Miz[i][0]," in point x,y =(",Miz[i][2],",",Miz[i][3],") !")
+    if Change == 1:
+        plt.legend(['T300/976 a in l/2', 'T300/976 a in l/4', 'T300/976 2*a in l/2', 'T300/976 a in l/4',
+                    'T300/976 3*a in l/2', 'T300/976 3*a in l/4'])
+    if Change == 2:
+        plt.legend(['Org_glass a in l/2', 'Org_glass a in l/4', 'Org_glass 2*a in l/2', 'Org_glass a in l/4',
+                    'Org_glass 3*a in l/2', 'Org_glass 3*a in l/4'])
     if Change == 3:
-        plt.legend(['Still a in l/2','Still a in l/4','Still 2*a in l/2','Still a in l/4','Still 3*a in l/2','Still 3*a in l/4'])
+        plt.legend(['Still a in l/2', 'Still a in l/4', 'Still 2*a in l/2', 'Still a in l/4', 'Still 3*a in l/2',
+                    'Still 3*a in l/4'])
 
     plt.title("График зависимости W-q")
     plt.xlabel("W [мм]")
