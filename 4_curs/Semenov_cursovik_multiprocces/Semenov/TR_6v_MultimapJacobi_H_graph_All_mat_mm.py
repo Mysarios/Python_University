@@ -16,16 +16,16 @@ import mpmath as vpa
 One_point = 0
 Multi = 1
 A_Numeric = 1
-Change = 2
+Change = 3
 Type_Resolve = 1# 0 - Ritz 1 - Nuton 2 - Bubnov
 # Data for algorithm
 Start_w0 = 0.0035
-eps = 0.05
-N_x = 2
-N_y = 2
+eps = 0.1
+N_x = 1
+N_y = 1
 N = N_x * N_y
-q_find = 0.6/3
-Q_Count_Steps = 30
+q_find = 30/3
+Q_Count_Steps = 70
 Q_step = q_find/Q_Count_Steps
 Count_Es = 12
 # graph points
@@ -72,20 +72,20 @@ Sigma_t = 0
 
 if Change == 1:
     # T300/976
-    E1 = 1.4 * (10 ** 5)
-    E2 = 0.97 * (10 ** 4)
+    E1 = 140000000
+    E2 = 9700000
     nu_12 = 0.29
     nu_21 = (E2 * nu_12) / E1
-    G12 = 0.55 * (10 ** 4)
+    G12 = 5500000
     G13 = G12
-    G23 = 0.33 * (10 ** 4)
-    F1_min = -1599
-    F1_max = 1517
-    F2_min = -253
-    F2_max_T300 = 46
-    F2_max = 41.4
+    G23 = 3300000
+    F1_min = -1599000
+    F1_max = 1517000
+    F2_min = -253000
+    F2_max_T300 = 46000
+    F2_max = 41400
     Density = 1500
-    Sigma_t = 100
+    Sigma_t = 100000
 if Change == 2:
     # Izo:
     # Org_Glass_1:
@@ -435,18 +435,21 @@ def Get_W_Plane(x_val, y_val, function, Values, type):
 
     return W_result
 def Draw_deformed_plot(W_func,U_func,V_func):
+    print("Start Visual!!!")
     x_array = [0] * (Size_visualization*Size_visualization)
     y_array = [0] * (Size_visualization*Size_visualization)
-
     x_array_graph = [0] * (Size_visualization*Size_visualization)
     y_array_graph = [0] * (Size_visualization*Size_visualization)
     pi = 3.14
 
     Min_ab = min(A_lenght_x,B_lenght_y)
     Max_ab = max(A_lenght_x,B_lenght_y)
-
+    #print("Min ab = ",Min_ab)
+    #print("Max ab = ", Min_ab)
     Min_ab_g = min(pi * R_1_x, pi * R_2_y)
     Max_ab_g = max(pi * R_1_x, pi * R_2_y)
+    #print("Min ab_g = ", Min_ab_g)
+    #print("Max ab_g = ", Max_ab_g)
 
     X_array = [0] * (Size_visualization * Size_visualization)
     Y_array = [0] * (Size_visualization * Size_visualization)
@@ -455,13 +458,19 @@ def Draw_deformed_plot(W_func,U_func,V_func):
     R_main = max(R_1_x,R_2_y) - min(R_1_x,R_2_y)
     r_main = min(R_1_x,R_2_y)
 
-    x_step = (2*Min_ab / (2 * r_main)) / (Size_visualization**2)
-    y_step = (2*Max_ab / (2 * (R_main + r_main))) / (Size_visualization**2)
-    print("X_step =",x_step)
-    print("Y_step = ",y_step)
+    #print("R_main = ", R_main)
+    #print("r_main = ", r_main)
 
-    x_array[0] = -Min_ab/(2*r_main)
-    y_array[0] = -Max_ab/(2*(R_main+r_main))
+    #x_step = (2*Min_ab / (2 * r_main))
+    #y_step = (2*Max_ab / (2 * (R_main + r_main)))
+    x_step = A_lenght_x/(Size_visualization*Size_visualization)
+    y_step = B_lenght_y / (Size_visualization*Size_visualization)
+
+    #print("X_step =",x_step)
+    #print("Y_step = ",y_step)
+
+    x_array[0] = 0
+    y_array[0] = 0
     x_array_graph[0] = 0
     y_array_graph[0] = 0
     x_graph_step = (2*Min_ab_g / (2 * r_main)) / (Size_visualization**2)
@@ -470,20 +479,21 @@ def Draw_deformed_plot(W_func,U_func,V_func):
     for index in range(1,Size_visualization*Size_visualization):
         x_array[index] = x_array[index - 1] + x_step
         y_array[index] = y_array[index - 1] + y_step
-    for index in range(1,Size_visualization*Size_visualization):
         x_array_graph[index] = x_array_graph[index - 1] + x_graph_step
         y_array_graph[index] = y_array_graph[index - 1] + y_graph_step
 
-    print(x_array)
-    print(y_array)
+
+    #print("X array",x_array)
+    #print("Y array",y_array)
+
     for index in range(0,Size_visualization**2):
         buf = [0] * (Size_visualization**2)
         Z_array.append(buf)
         for index_2 in range(0,Size_visualization**2):
-            Z_array[index][index_2] = ((r_main*sin(x_array_graph[index_2]) + r_main*sin(y_array_graph[index]))/40)*h
-
-    print("Z0 = " ,Z_array[0])
-    print("Z_len", len(Z_array))
+            Z_array[index][index_2] = (((r_main*sin(x_array_graph[index_2]) + r_main*sin(y_array_graph[index])))*h)/1000
+    #print("Z0 = " ,Z_array[0])
+    #print("Z_len", len(Z_array))
+    print("H_max =", max(max(Z_array)))
     Z = np.array(Z_array)
     x_array_graph = np.array(x_array_graph)
     y_array_graph = np.array(y_array_graph)
@@ -494,11 +504,12 @@ def Draw_deformed_plot(W_func,U_func,V_func):
         #print(X[i])
 
     fig = plt.figure()
-    ax = plt.axes(projection='3d',ylim =(-0.02,0.02),xlim = (-0.02,0.02),zlim = (-0.02,0.02))
+    #ax = plt.axes(projection='3d',ylim =(0,200),xlim = (0,200),zlim = (0,200))
+    ax = plt.axes(projection='3d', ylim=(0, 200), xlim=(0, 200))
     ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='green')
-    ax.set_xlabel('x [м]')
-    ax.set_ylabel('y [м]')
-    ax.set_zlabel('z [м]')
+    ax.set_xlabel('x [мм]')
+    ax.set_ylabel('y [мм]')
+    ax.set_zlabel('z [мм]')
     ax.set_title("Visual")
     plt.show()
 
@@ -522,8 +533,10 @@ def Draw_deformed_plot(W_func,U_func,V_func):
     print(U_func)
     print(V_func)
     print(x_array)
+
     x_new = np.linspace(0,A_lenght_x,Size_visualization*Size_visualization)
     y_new = np.linspace(0,B_lenght_y,Size_visualization*Size_visualization)
+
     for index in range(0,Size_visualization*Size_visualization):
         for index_2 in range(0, Size_visualization * Size_visualization):
             #X[index][index_2] = X[index][index_2] + Nu_array[0].subs([(Xx, x_array[index_2]), (Yy, y_array[index])]) \
@@ -532,9 +545,9 @@ def Draw_deformed_plot(W_func,U_func,V_func):
             #                          + Nv_array[2].subs([(Xx, x_array[index_2]), (Yy, y_array[index])]) + Nw_array[2].subs([(Xx, x_array[index_2]), (Yy, y_array[index])])
             #Z_array[index][index_2] = Z_array[index][index_2]/10 + Nw_array[1].subs([(Xx, x_new[index_2]), (Yy, y_new[index])]) \
             #                          + Nw_array[1].subs([(Xx, x_new[index_2]), (Yy, y_new[index])]) + Nw_array[2].subs([(Xx, x_new[index_2]), (Yy, y_new[index])])
-            X[index][index_2] = X[index][index_2] - U_func.subs([(Xx, x_new[index]), (Yy, y_new[index_2])])*10
-            Y[index][index_2] = Y[index][index_2] - V_func.subs( [(Xx, x_new[index]), (Yy, y_new[index_2])])*10
-            Z_array[index][index_2] =Z_array[index][index_2] - W_func.subs( [(Xx, x_new[index]), (Yy, y_new[index_2])])*50
+            X[index][index_2] = X[index][index_2] - U_func.subs([(Xx, x_new[index]), (Yy, y_new[index_2])])
+            Y[index][index_2] = Y[index][index_2] - V_func.subs( [(Xx, x_new[index]), (Yy, y_new[index_2])])
+            Z_array[index][index_2] =Z_array[index][index_2] - W_func.subs( [(Xx, x_new[index]), (Yy, y_new[index_2])])*10
             #print("old",Z_array[index][index_2]/1000)
             #print("new",Nu_array[2].subs([(Xx, x_array[index_2]), (Yy, y_array[index])]) \
             #                          + Nv_array[2].subs([(Xx, x_array[index_2]), (Yy, y_array[index])]) + Nw_array[2].subs([(Xx, x_array[index_2]), (Yy, y_array[index])]))
@@ -548,11 +561,21 @@ def Draw_deformed_plot(W_func,U_func,V_func):
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='green')
-    ax.set_xlabel('x [м]')
-    ax.set_ylabel('y [м]')
-    ax.set_zlabel('z [м]')
+    ax.set_xlabel('x [мм]')
+    ax.set_ylabel('y [мм]')
+    ax.set_zlabel('z [мм]')
     ax.set_title("Visual")
     plt.show()
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d', ylim=(0, 200), xlim=(0, 200),zlim = (0,200))
+    ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='green')
+    ax.set_xlabel('x [мм]')
+    ax.set_ylabel('y [мм]')
+    ax.set_zlabel('z [мм]')
+    ax.set_title("Visual")
+    plt.show()
+
 def Draw_3d_W(Function, Values_Result, type_f):
     x_array = []
     y_array = []
@@ -962,7 +985,6 @@ def y_xy_z(yxy,ksi_12):
     Result = yxy + (-Hh)*ksi_12
 
     return Result
-
 def y_xy_part(U_function, V_function, W_Function,TETTA_1,TETTA_2):
     Result = [0] * 3
     Result[0] = (1 / A) * V_function.diff(Xx)
@@ -1017,7 +1039,7 @@ def N_x_Izo(E, nu12,nu21,ex,ey):
 def N_x_Izo_part(E, nu12,nu21,ex,ey):
     Result = [0]*2
     Result[0] = (E / (1 - nu12 * nu21)) * Hh * ex;
-    Result[1] = (E / (1 - nu12 * nu21)) * Hh * nu12 * ey;
+    Result[1] = (E / (1 - nu12 * nu21)) * Hh * nu21 * ey;
     return Result
 def N_y_Izo(E, nu12,nu21,ex,ey):
     Result = (E / (1 - nu12 * nu21)) * Hh * (ey + nu21 * ex);
@@ -1025,7 +1047,7 @@ def N_y_Izo(E, nu12,nu21,ex,ey):
 def N_y_Izo_part(E, nu12,nu21,ex,ey):
     Result = [0]*2
     Result[0] = (E / (1 - nu12 * nu21)) * Hh * ey;
-    Result[1] = (E / (1 - nu12 * nu21)) * Hh * nu21 * ex;
+    Result[1] = (E / (1 - nu12 * nu21)) * Hh * nu12 * ex;
     return Result
 def N_xy_Izo(G, nu,yxy):
     Result = [0]*3
@@ -1033,20 +1055,20 @@ def N_xy_Izo(G, nu,yxy):
     Result[1] = G * Hh * yxy[1]
     Result[2] = G * Hh * yxy[2]
     return Result
-def M_x_Izo(E, nu,ksi1,ksi2):
-    Result = (E / (1 - nu * nu)) * ((Hh**3) / 12) * (ksi1 + nu * ksi2);
+def M_x_Izo(E, nu_12,nu_21,ksi1,ksi2):
+    Result = (E / (1 - nu_12 * nu_21)) * ((Hh**3) / 12) * (ksi1 + nu_21 * ksi2);
     return Result
-def M_y_Izo(E, nu,ksi1,ksi2):
-    Result = (E / (1 - nu * nu)) * ((Hh**3) / 12) * (ksi2 + nu * ksi1);
+def M_y_Izo(E, nu_12,nu_21,ksi1,ksi2):
+    Result = (E / (1 - nu_12 * nu_21)) * ((Hh**3) / 12) * (ksi2 + nu_12 * ksi1);
     return Result
 def M_xy_Izo(G, nu, ksi12):
     Result = 2 * G * ((Hh**3) / 12) * ksi12
     return Result
-def Get_Sigma_x_Izo(E, nu, z_val,ex,ey,KSI1,KSI2):
-    Result = (E / (1 - nu * nu)) * (ex + nu * ey + (-Hh/2) * (KSI1 + nu * KSI2))
+def Get_Sigma_x_Izo(E, nu_12, nu_21, z_val,ex,ey,KSI1,KSI2):
+    Result = (E / (1 - nu_12 * nu_21)) * (ex + nu_21 * ey + (-Hh/2) * (KSI1 + nu_21 * KSI2))
     return Result
-def Get_Sigma_y_Izo(E, nu, z_val,ex,ey,KSI1,KSI2):
-    Result = (E / (1 - nu * nu)) * (ey + nu * ex + (-Hh/2) * (KSI2 + nu * KSI1))
+def Get_Sigma_y_Izo(E, nu_12, nu_21, z_val,ex,ey,KSI1,KSI2):
+    Result = (E / (1 - nu_12 * nu_21)) * (ey + nu_12 * ex + (-Hh/2) * (KSI2 + nu_12 * KSI1))
     return Result
 def Get_Sigma_tay_Izo(G12, nu, z_val,yxy,KSI12):
     Result = G12 * (yxy + 2 * (-Hh/2) * KSI12)
@@ -1674,7 +1696,7 @@ def Nuton_Loop(Es_Get,W_Function_get,sigma_x,sigma_y,sigma_tay):
         w_for_graph_4[i].append(0)
 
     W_Result = [0] * (1000)
-    W_Result[0] = [0.1] * N*5
+    W_Result[0] = [0.001] * N*5
 
     Q_function = q_function(Q_now,0)
     Es_Get[7] = (-2) * (Q_function * W_Function_get)
@@ -1800,7 +1822,20 @@ def Nuton_byPoint(Es_Get,W_Function_get):
 
     W_Result = [0] * (5)
     W_Result[0] = [0.0001] * N*5
-    #W_Result[0][0] = Start_w0
+    #W_Result[0][0] = 3
+    #print(W_Result[0])
+    #W_Result[0] = [3.74885474336874, -0.0279630259665207, 0.0541634218784015, -0.0907776564867707, -0.0303405809568086, -0.00120203304247375, 0.00502268166794714, 0.00107163810758357, -0.0387194608081201, 0.00691748440476835, -0.00412977762537998, 0.00163838010816346, -0.0588816111494670, 0.00131429124355399, -0.000851701731114988, 0.00427798479980411, -0.0588769537235213, 0.000437378198980303, -0.00255836617573380, 0.00427844847406291]
+    W_Result[0] = [0.017786911642670, -0.000564657955444373, -0.00398439759420913, -0.00120268363699261,
+                         0.000895996863933102, 0.000965897325377122, 0.000969422666680191, 0.000981538950014033,
+                         0.000846484633837755, 0.000965115282362594, 0.000976416650144447, 0.000983355572424134,
+                         0.000697066265024303, 0.00104930782231455, 0.00105461033201082, 0.00107937658489713,
+                         0.000697082825784533, 0.00100089631628238, 0.00121043813865665, 0.00107937507012975]
+    #W_Result[0] = [0.00453194824996379, 0.000686909891288986, 3.30388525480721e-5, 0.000558229220868899,
+    #                     0.000976155064805989, 0.000990027925391850, 0.000990664864102216, 0.000993139076428632,
+    #                     0.000966434033902347, 0.000989863554816704, 0.000991997402871729, 0.000993515508917947,
+    #                     0.000936588041744951, 0.00100657122559083, 0.00100725325523264, 0.00101263564456488,
+    #                     0.000936591321778728, 0.000996982873707688, 0.00103738006690587, 0.00101263534450048]
+    #print(W_Result[0])
 
     timer = time.time()
     p_result =[]
@@ -2019,18 +2054,18 @@ if __name__ == '__main__':
 
     #z_val = 0
     type_z = 1
-    if Change == 1:
+    if Change == 0:
         Sigma_x_Function = Get_Sigma_x_Orto(U_function_buf, V_function_buf, W_function_buf, E1, nu_12, nu_21,z_val, PsiX_function_buf, PsiY_function_buf)
         Sigma_y_Function = Get_Sigma_y_Orto(U_function_buf, V_function_buf, W_function_buf, E2, nu_12, nu_21, z_val, PsiX_function_buf, PsiY_function_buf)
         Tay_xy_Function = Get_Sigma_tay_Orto(U_function_buf, V_function_buf, W_function_buf, G12, z_val, PsiX_function_buf, PsiY_function_buf)
-    if Change == 2 or Change == 3:
+    if Change == 2 or Change == 3 or Change == 1:
         if type_z == 1:
-            Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12, z_val, F_EX_z, F_EY_z, KSI_1, KSI_2)
-            Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12, z_val, F_EX_z, F_EY_z, KSI_1, KSI_2)
+            Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12,nu_21, z_val, F_EX_z, F_EY_z, KSI_1, KSI_2)
+            Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12,nu_21, z_val, F_EX_z, F_EY_z, KSI_1, KSI_2)
             Tay_xy_Function = Get_Sigma_tay_Izo(G12, nu_12, z_val, F_XY_z, KSI_12)
         if type_z == 0:
-            Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12, z_val, F_EX, F_EY, KSI_1, KSI_2)
-            Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12, z_val, F_EX, F_EY, KSI_1, KSI_2)
+            Sigma_x_Function = Get_Sigma_x_Izo(E1, nu_12,nu_21, z_val, F_EX, F_EY, KSI_1, KSI_2)
+            Sigma_y_Function = Get_Sigma_y_Izo(E1, nu_12,nu_21, z_val, F_EX, F_EY, KSI_1, KSI_2)
             Tay_xy_Function = Get_Sigma_tay_Izo(G12, nu_12, z_val, F_XY, KSI_12)
 
     #print("Sigma_x_Function = ", Sigma_x_Function)
@@ -2039,7 +2074,7 @@ if __name__ == '__main__':
     integral_type = 1
     part = 1
     if integral_type == 1:
-        if Change == 1:
+        if Change == 0:
             Es_main[0] = N_x_Orto(z_num, U_function, V_function, W_function, E1, nu_12, nu_21) * e_x(U_function, V_function, W_function)
             Es_main[1] = N_y_Orto(z_num, U_function, V_function, W_function, E1, nu_12, nu_21) * e_y(U_function, V_function, W_function)
             Es_main[2] = N_xy_Orto(z_num, U_function, V_function, W_function, G12) * y_xy(U_function, V_function,W_function)
@@ -2048,15 +2083,15 @@ if __name__ == '__main__':
             Es_main[4] = 2 * M_xy_Orto(W_function, G12) * ksi_12(PsiX_function, PsiY_function)
             Es_main[5] = Q_x(PsiX_function, PsiY_function, G13, W_function, U_function)
             Es_main[6] = Q_y(PsiX_function, PsiY_function, G23, W_function, U_function)
-        if Change == 2 or Change == 3:
+        if Change == 2 or Change == 3 or Change ==1:
             if part ==1:
                 NX_I_part = N_x_Izo_part(E1, nu_12, nu_21, F_EX, F_EY)
                 NY_I_part = N_y_Izo_part(E1, nu_12, nu_21, F_EX, F_EY)
                 #NXY_I = N_xy_Izo(G12, nu_12,F_XY)
                 NXY_I_part = N_xy_Izo(G12, nu_12, F_XY_part)
 
-                MX_I = M_x_Izo(E1, nu_12,KSI_1,KSI_2)
-                MY_I = M_y_Izo(E1,nu_12,KSI_1,KSI_2)
+                MX_I = M_x_Izo(E1, nu_12,nu_21,KSI_1,KSI_2)
+                MY_I = M_y_Izo(E1,nu_12,nu_21,KSI_1,KSI_2)
                 MXY_I = M_xy_Izo(G12, nu_12,KSI_12)
 
                 Q_X = Q_x(PsiX_function,G13, TETTA_1)
